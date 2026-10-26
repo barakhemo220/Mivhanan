@@ -73,6 +73,11 @@ const zipUpload = multer({
 // Serve static images
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
+// Health check endpoint (for keep-alive pings like UptimeRobot)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 const EMPLOYEES_FILE = path.join(__dirname, 'data/employees.json');
 const QUESTIONS_FILE = path.join(__dirname, 'data/questions.json');
 const RESULTS_FILE = path.join(__dirname, 'data/exam_results.json');
