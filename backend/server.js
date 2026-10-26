@@ -246,44 +246,87 @@ function checkExamEligibility(employee) {
 // 1. Authentication / Employee Verification
 // -------------------------------------------------------------
 app.post('/api/auth/login', (req, res) => {
-  const { name, employeeId, password } = req.body;
+  const { name, username: reqUsername, employeeId, password } = req.body;
+  const username = String(reqUsername || name || '').trim();
+  const credential = String(password || employeeId || '').trim();
 
-  if (!name || !employeeId) {
-    return res.status(400).json({ success: false, message: 'נא להזין שם ומספר אישי' });
+  if (!username || !credential) {
+    return res.status(400).json({ success: false, message: 'נא להזין שם משתמש וסיסמה' });
   }
 
-  const cleanId = String(employeeId).trim();
-  const cleanName = String(name).trim().toLowerCase();
-
+  const cleanUser = username.toLowerCase();
   const employees = readJson(EMPLOYEES_FILE, []);
 
-  // Match by ID and verify name
+  // 1. Direct Admin Login Check
+  const isAdminAttempt = (
+    cleanUser === '9999' || 
+    cleanUser === 'admin' || 
+    cleanUser === 'מנהל מערכת' || 
+    cleanUser === 'מנהל'
+  );
+
+  if (isAdminAttempt) {
+    if (credential !== ADMIN_PASSWORD && credential !== '9999') {
+      return res.status(401).json({
+        success: false,
+        message: 'סיסמת מנהל מערכת שגויה. הגישה נדחתה.'
+      });
+    }
+
+    const adminMatch = employees.find(e => String(e.id).trim() === '9999') || {
+      id: '9999',
+      name: 'מנהל מערכת',
+      department: 'הנהלת מכשור ובקרה',
+      role: 'מנהל מערכת ראשי (Admin)',
+      level: 3,
+      isAdmin: true
+    };
+
+    return res.json({
+      success: true,
+      employee: {
+        id: adminMatch.id,
+        name: adminMatch.name,
+        department: adminMatch.department,
+        role: adminMatch.role,
+        level: adminMatch.level || 3,
+        isAdmin: true,
+        nextExamDate: null,
+        scheduleNotes: ''
+      },
+      eligibility: { canTakeExam: false, reason: 'ADMIN_USER', message: 'מנהל מערכת אינו נדרש לבצע מבחנים תקופתיים.' }
+    });
+  }
+
+  // 2. Regular Employee Login Check
   const match = employees.find(emp => {
-    const empId = String(emp.id).trim();
+    const empId = String(emp.id).trim().toLowerCase();
     const empName = String(emp.name).trim().toLowerCase();
-    return empId === cleanId && (empName === cleanName || empName.includes(cleanName) || cleanName.includes(empName));
+
+    // Option A: Username is employee name, Password is personal employee ID
+    const matchesNameAndId = (
+      (empName === cleanUser || empName.includes(cleanUser) || cleanUser.includes(empName)) &&
+      (empId === credential.toLowerCase())
+    );
+
+    // Option B: Username is personal employee ID, Password is also personal employee ID
+    const matchesIdBoth = (empId === cleanUser && credential.toLowerCase() === empId);
+
+    return matchesNameAndId || matchesIdBoth;
   });
 
   if (!match) {
     return res.status(401).json({
       success: false,
-      message: 'פרטי הזיהוי אינם תואמים לרשימת העובדים. אנא ודא שהמספר האישי והשם הוזנו נכון או פנה למנהל.'
+      message: 'פרטי הזיהוי אינם תואמים. אנא ודא ששם המשתמש והסיסמה הוזנו נכון.'
     });
   }
 
-  // Security enforcement: Admin login requires password
-  if (match.isAdmin || cleanId === '9999') {
-    if (!password) {
+  // If matched employee is an admin:
+  if (match.isAdmin) {
+    if (credential !== ADMIN_PASSWORD && credential !== String(match.id).trim()) {
       return res.status(401).json({
         success: false,
-        isAdminRequired: true,
-        message: 'כניסת מנהל מערכת דורשת סיסמת Admin.'
-      });
-    }
-    if (String(password).trim() !== ADMIN_PASSWORD) {
-      return res.status(401).json({
-        success: false,
-        isAdminRequired: true,
         message: 'סיסמת מנהל מערכת שגויה. הגישה נדחתה.'
       });
     }
