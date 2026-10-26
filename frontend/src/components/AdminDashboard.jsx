@@ -28,7 +28,8 @@ import {
   AlertTriangle,
   Clock,
   Zap,
-  Edit3
+  Edit3,
+  Archive
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import SavedExamModal from './SavedExamModal';
@@ -95,12 +96,46 @@ export default function AdminDashboard({ onBackToExam }) {
   // In-App Confirm Dialog & Toast Notification State (Prevents browser dialog blocking)
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [toastNotification, setToastNotification] = useState(null);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const showToast = (text, type = 'success') => {
     setToastNotification({ text, type });
     setTimeout(() => {
       setToastNotification(prev => (prev?.text === text ? null : prev));
     }, 3500);
+  };
+
+  const handleRestoreZip = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm(`האם אתה בטוח שברצונך לשחזר את נתוני המערכת מתוך הקובץ "${file.name}"?\nפעולה זו תעדכן את רשימות העובדים, בנק השאלות, הציונים וקובצי ה-PDF.`)) {
+      e.target.value = '';
+      return;
+    }
+
+    setIsRestoring(true);
+    const formData = new FormData();
+    formData.append('backupZip', file);
+
+    try {
+      const res = await fetch('/api/admin/restore-zip', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'שגיאה בשחזור הגיבוי');
+      }
+
+      showToast(data.message || 'השחזור הושלם בהצלחה!', 'success');
+      await fetchDashboardData();
+    } catch (err) {
+      showToast(err.message || 'שגיאה בביצוע השחזור', 'error');
+    } finally {
+      setIsRestoring(false);
+      e.target.value = '';
+    }
   };
 
   useEffect(() => {
@@ -762,6 +797,32 @@ export default function AdminDashboard({ onBackToExam }) {
         </div>
 
         <div className="admin-header-actions">
+          <a
+            href="/api/admin/backup-zip"
+            download
+            className="btn btn-secondary"
+            title="הורדת קובץ גיבוי ZIP מלא של כל המערכת (כולל JSON וכל קובצי ה-PDF)"
+          >
+            <Archive size={16} className="text-amber" />
+            <span>גיבוי מלא (ZIP)</span>
+          </a>
+
+          <label
+            className="btn btn-secondary"
+            style={{ cursor: isRestoring ? 'wait' : 'pointer' }}
+            title="העלאת קובץ גיבוי ZIP ושחזור כל הנתונים וקובצי ה-PDF"
+          >
+            <UploadCloud size={16} className="text-cyan" />
+            <span>{isRestoring ? 'משחזר נתונים...' : 'שחזור מ-ZIP'}</span>
+            <input
+              type="file"
+              accept=".zip"
+              style={{ display: 'none' }}
+              disabled={isRestoring}
+              onChange={handleRestoreZip}
+            />
+          </label>
+
           <button 
             type="button" 
             id="btn-export-excel"

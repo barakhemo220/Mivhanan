@@ -4,12 +4,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
+import AdmZip from 'adm-zip';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Hanan4343!';
 
 app.use(cors());
 app.use(express.json({ limit: '25mb' }));
@@ -55,6 +57,17 @@ const upload = multer({
       cb(new Error('סוג קובץ לא נתמך. נא להעלות תמונה מסוג JPG, PNG, WebP, SVG בלבד.'));
     }
   }
+});
+
+// Multer config for ZIP restore upload
+const TEMP_UPLOADS_DIR = path.join(__dirname, 'data/temp_uploads');
+if (!fs.existsSync(TEMP_UPLOADS_DIR)) {
+  fs.mkdirSync(TEMP_UPLOADS_DIR, { recursive: true });
+}
+
+const zipUpload = multer({
+  dest: TEMP_UPLOADS_DIR,
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
 });
 
 // Serve static images
@@ -194,7 +207,7 @@ function checkExamEligibility(employee) {
 // 1. Authentication / Employee Verification
 // -------------------------------------------------------------
 app.post('/api/auth/login', (req, res) => {
-  const { name, employeeId } = req.body;
+  const { name, employeeId, password } = req.body;
 
   if (!name || !employeeId) {
     return res.status(400).json({ success: false, message: 'נא להזין שם ומספר אישי' });
@@ -217,6 +230,24 @@ app.post('/api/auth/login', (req, res) => {
       success: false,
       message: 'פרטי הזיהוי אינם תואמים לרשימת העובדים. אנא ודא שהמספר האישי והשם הוזנו נכון או פנה למנהל.'
     });
+  }
+
+  // Security enforcement: Admin login requires password
+  if (match.isAdmin || cleanId === '9999') {
+    if (!password) {
+      return res.status(401).json({
+        success: false,
+        isAdminRequired: true,
+        message: 'כניסת מנהל מערכת דורשת סיסמת Admin.'
+      });
+    }
+    if (String(password).trim() !== ADMIN_PASSWORD) {
+      return res.status(401).json({
+        success: false,
+        isAdminRequired: true,
+        message: 'סיסמת מנהל מערכת שגויה. הגישה נדחתה.'
+      });
+    }
   }
 
   const eligibility = checkExamEligibility(match);
@@ -827,6 +858,74 @@ app.get('/api/admin/export-csv', (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="mivhanan_results.csv"');
   res.send(csv);
+});
+
+// -------------------------------------------------------------
+// Full System Backup (ZIP) - All JSON files + all saved PDF reports
+// -------------------------------------------------------------
+app.get('/api/admin/backup-zip', (req, res) => {
+  try {
+    const zip = new AdmZip();
+    if (fs.existsSync(EMPLOYEES_FILE)) zip.addLocalFile(EMPLOYEES_FILE, '', 'employees.json');
+    if (fs.existsSync(RESULTS_FILE)) zip.addLocalFile(RESULTS_FILE, '', 'exam_results.json');
+    if (fs.existsSync(QUESTIONS_FILE)) zip.addLocalFile(QUESTIONS_FILE, '', 'questions.json');
+    if (fs.existsSync(SAVED_EXAMS_PDF_DIR)) zip.addLocalFolder(SAVED_EXAMS_PDF_DIR, 'saved_exams_pdf');
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const buffer = zip.toBuffer();
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="mivhanan_full_backup_${dateStr}.zip"`);
+    res.send(buffer);
+  } catch (err) {
+    console.error('Backup ZIP error:', err);
+    res.status(500).json({ success: false, message: 'שגיאה ביצירת קובץ גיבוי ZIP: ' + err.message });
+  }
+});
+
+// Full System Restore from uploaded ZIP (restores JSON files and all PDF reports)
+app.post('/api/admin/restore-zip', zipUpload.single('backupZip'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'לא נבחר קובץ ZIP לשחזור' });
+  }
+
+  try {
+    const zip = new AdmZip(req.file.path);
+    const zipEntries = zip.getEntries();
+    let restoredCount = 0;
+
+    zipEntries.forEach(entry => {
+      const entryName = entry.entryName.replace(/\\/g, '/');
+      if (entryName === 'employees.json') {
+        fs.writeFileSync(EMPLOYEES_FILE, entry.getData());
+        restoredCount++;
+      } else if (entryName === 'exam_results.json') {
+        fs.writeFileSync(RESULTS_FILE, entry.getData());
+        restoredCount++;
+      } else if (entryName === 'questions.json') {
+        fs.writeFileSync(QUESTIONS_FILE, entry.getData());
+        restoredCount++;
+      } else if (entryName.startsWith('saved_exams_pdf/') && !entry.isDirectory) {
+        const filename = path.basename(entryName);
+        if (filename) {
+          fs.writeFileSync(path.join(SAVED_EXAMS_PDF_DIR, filename), entry.getData());
+          restoredCount++;
+        }
+      }
+    });
+
+    try { fs.unlinkSync(req.file.path); } catch {}
+
+    res.json({
+      success: true,
+      message: `השחזור הושלם בהצלחה! שוחזרו ${restoredCount} קובצי נתונים ומסמכי PDF.`,
+      restoredCount
+    });
+  } catch (err) {
+    console.error('Restore ZIP error:', err);
+    try { fs.unlinkSync(req.file.path); } catch {}
+    res.status(500).json({ success: false, message: 'שגיאה בפריקת קובץ הגיבוי: ' + err.message });
+  }
 });
 
 // Export 4-Month Periodic Exam Compliance Report to CSV with UTF-8 BOM

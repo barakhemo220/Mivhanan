@@ -1,11 +1,24 @@
 import React, { useState } from 'react';
-import { Gauge, ArrowLeft, ShieldAlert, Cpu, Sparkles, CheckCircle2 } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ShieldAlert, 
+  Cpu, 
+  CheckCircle2, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  ShieldCheck 
+} from 'lucide-react';
 
 export default function LoginView({ onLoginSuccess }) {
   const [name, setName] = useState('');
   const [employeeId, setEmployeeId] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const isAdminAttempt = employeeId.trim() === '9999' || name.trim() === 'מנהל מערכת';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,12 +29,21 @@ export default function LoginView({ onLoginSuccess }) {
       return;
     }
 
+    if (isAdminAttempt && !password.trim()) {
+      setError('כניסת מנהל מערכת דורשת סיסמה מאובטחת');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), employeeId: employeeId.trim() })
+        body: JSON.stringify({ 
+          name: name.trim(), 
+          employeeId: employeeId.trim(),
+          password: password.trim()
+        })
       });
 
       const data = await response.json();
@@ -35,12 +57,6 @@ export default function LoginView({ onLoginSuccess }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickLogin = (quickName, quickId) => {
-    setName(quickName);
-    setEmployeeId(quickId);
-    setError('');
   };
 
   return (
@@ -79,7 +95,7 @@ export default function LoginView({ onLoginSuccess }) {
               type="text"
               id="input-employee-name"
               className="form-input"
-              placeholder="לדוגמה: ישראל ישראלי"
+              placeholder="לדוגמה: ישראל ישראלי או מנהל מערכת"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoComplete="name"
@@ -103,6 +119,42 @@ export default function LoginView({ onLoginSuccess }) {
             />
           </div>
 
+          {/* Admin Password Field - Displays when Admin ID 9999 or Admin name is entered */}
+          {isAdminAttempt && (
+            <div className="form-group fade-in" id="admin-password-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <label htmlFor="input-admin-password" className="form-label" style={{ margin: 0 }}>
+                  סיסמת מנהל מערכת (Admin)
+                </label>
+                <span className="badge-admin-security">
+                  <ShieldCheck size={13} />
+                  <span>אבטחת ניהול</span>
+                </span>
+              </div>
+              <div className="password-input-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="input-admin-password"
+                  className="form-input"
+                  placeholder="הזן סיסמת מנהל מערכת..."
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex="-1"
+                  title={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+          )}
+
           <button
             type="submit"
             id="btn-login-submit"
@@ -113,68 +165,30 @@ export default function LoginView({ onLoginSuccess }) {
               <span className="btn-loading-spinner">מאמת נתונים...</span>
             ) : (
               <>
-                <span>כניסה למבחן התקופתי</span>
+                <span>{isAdminAttempt ? 'כניסה לממשק ניהול' : 'כניסה למבחן התקופתי'}</span>
                 <ArrowLeft size={18} />
               </>
             )}
           </button>
         </form>
 
-        {/* Quick Demo Selector */}
-        <div className="quick-login-section">
-          <div className="quick-login-title">
-            <Sparkles size={14} />
-            <span>כניסה מהירה לבדיקה והתרשמות:</span>
-          </div>
-          <div className="quick-chips-grid">
-            <button
-              type="button"
-              className="quick-chip"
-              onClick={() => handleQuickLogin('ברק חמו', '134168')}
-            >
-              <strong>ברק חמו</strong> (134168) - מכשירן חומר גלם
-            </button>
-            <button
-              type="button"
-              className="quick-chip"
-              onClick={() => handleQuickLogin('הרצל ביתן', '9430')}
-            >
-              <strong>הרצל ביתן</strong> (9430) - מנהל חומר גלם
-            </button>
-            <button
-              type="button"
-              className="quick-chip"
-              onClick={() => handleQuickLogin('ניר אבוטבול', '128704')}
-            >
-              <strong>ניר אבוטבול</strong> (128704) - מנהל אשלג ב'
-            </button>
-            <button
-              type="button"
-              className="quick-chip admin-chip"
-              onClick={() => handleQuickLogin('מנהל מערכת', '9999')}
-            >
-              <strong>מנהל מערכת</strong> (9999) - גישת Admin
-            </button>
-          </div>
-        </div>
-
         {/* Information points */}
         <div className="login-features-list">
           <div className="feature-item">
             <CheckCircle2 size={16} className="feature-icon" />
-            <span>הגרלה אקראית של שאלות מתוך בנק מבחנים ב-Backend</span>
+            <span>הגרלה אקראית של שאלות מתוך בנק מבחנים מאובטח ב-Backend</span>
           </div>
           <div className="feature-item">
             <CheckCircle2 size={16} className="feature-icon" />
-            <span>ניווט חופשי, חזרה לשאלות קודמות ולוח מקשים חכם</span>
+            <span>תזמון תקופתי מובנה לכל 4 חודשים לפי תקני המפעל</span>
           </div>
           <div className="feature-item">
             <CheckCircle2 size={16} className="feature-icon" />
-            <span>תרשימים טכניים מוגדלים (P&ID, אקטואטורים, PID, FSK)</span>
+            <span>הפקה ושמירה אוטומטית של קובץ דוח PDF מלא בסיום הבחינה</span>
           </div>
           <div className="feature-item">
             <CheckCircle2 size={16} className="feature-icon" />
-            <span>חישוב ציון מיידי ותחקיר טכני מעמיק בסיום הבחינה</span>
+            <span>תרשימים טכניים מוגדלים (ISA-5.1, ATEX, SIL, שקילה ובקרים)</span>
           </div>
         </div>
       </div>
