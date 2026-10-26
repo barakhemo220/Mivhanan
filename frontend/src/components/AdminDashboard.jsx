@@ -29,7 +29,10 @@ import {
   Clock,
   Zap,
   Edit3,
-  Archive
+  Archive,
+  Copy,
+  KeyRound,
+  ShieldCheck
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import SavedExamModal from './SavedExamModal';
@@ -70,10 +73,14 @@ export default function AdminDashboard({ onBackToExam }) {
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
   const [newEmpId, setNewEmpId] = useState('');
   const [newEmpName, setNewEmpName] = useState('');
+  const [newEmpUsername, setNewEmpUsername] = useState('');
+  const [newEmpPassword, setNewEmpPassword] = useState('');
   const [newEmpDept, setNewEmpDept] = useState('מכשיריית חומר גלם');
   const [newEmpRole, setNewEmpRole] = useState('מכשירן חומר גלם');
   const [newEmpLevel, setNewEmpLevel] = useState(2);
   const [newEmpIsAdmin, setNewEmpIsAdmin] = useState(false);
+  const [copiedEmpId, setCopiedEmpId] = useState(null);
+  const [showPasswords, setShowPasswords] = useState(false);
 
   // Employee level update and filter state
   const [updatingEmpId, setUpdatingEmpId] = useState(null);
@@ -371,8 +378,8 @@ export default function AdminDashboard({ onBackToExam }) {
 
   const handleAddEmployee = async (e) => {
     e.preventDefault();
-    if (!newEmpId.trim() || !newEmpName.trim()) {
-      alert('נא למלא מספר אישי ושם עובד');
+    if (!newEmpName.trim()) {
+      alert('נא למלא שם עובד');
       return;
     }
 
@@ -381,8 +388,9 @@ export default function AdminDashboard({ onBackToExam }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: newEmpId.trim(),
           name: newEmpName.trim(),
+          username: (newEmpUsername.trim() || newEmpName.trim()),
+          password: newEmpPassword.trim() || undefined,
           department: newEmpDept,
           role: newEmpRole.trim() || 'מכשירן',
           level: parseInt(newEmpLevel, 10) || 2,
@@ -394,6 +402,8 @@ export default function AdminDashboard({ onBackToExam }) {
         setShowAddEmpModal(false);
         setNewEmpId('');
         setNewEmpName('');
+        setNewEmpUsername('');
+        setNewEmpPassword('');
         setNewEmpDept('מכשיריית חומר גלם');
         setNewEmpRole('מכשירן חומר גלם');
         setNewEmpLevel(2);
@@ -405,6 +415,20 @@ export default function AdminDashboard({ onBackToExam }) {
     } catch (err) {
       alert('שגיאה בהוספת עובד');
     }
+  };
+
+  const copyPasswordToClipboard = (empId, password) => {
+    if (!password) return;
+    navigator.clipboard.writeText(password);
+    setCopiedEmpId(empId);
+    setTimeout(() => setCopiedEmpId(null), 2000);
+  };
+
+  const generateRandomPassword = () => {
+    const prefixes = ['Miv', 'Sec', 'Aut', 'Pro', 'Con', 'Saf', 'Tek', 'Ctl'];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const rndNum = Math.floor(1000 + Math.random() * 8999);
+    return `${prefix}!${rndNum}#`;
   };
 
   const handleUpdateEmployeeLevel = async (empId, newLevel) => {
@@ -1519,17 +1543,28 @@ export default function AdminDashboard({ onBackToExam }) {
             <div className="tab-actions-header">
               <div>
                 <h3>רשימת עובדים מורשים לכניסה למבחן ({employees.length} עובדים)</h3>
-                <p className="tab-subtitle">ניתן לשנות את רמת המבחן של כל עובד ישירות מהטבלה. השינוי נשמר מיידית בשרת</p>
+                <p className="tab-subtitle">ניהול הרשאות, רמת מבחן וסיסמאות אישיות מאובטחות (תואם תקני הגנת המידע והפרטיות)</p>
               </div>
-              <button 
-                type="button" 
-                id="btn-open-add-emp-modal"
-                className="btn btn-primary btn-sm"
-                onClick={() => setShowAddEmpModal(true)}
-              >
-                <Plus size={16} />
-                <span>הוסף עובד חדש לרשימה</span>
-              </button>
+              <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <a 
+                  href="/api/admin/export-credentials-csv" 
+                  download="mivhanan_credentials.csv"
+                  className="btn btn-secondary btn-sm"
+                  title="הורדת קובץ אקסל עם שמות המשתמש והסיסמאות של כל העובדים לצורך חלוקה"
+                >
+                  <KeyRound size={15} />
+                  <span>ייצוא רשימת סיסמאות (Excel)</span>
+                </a>
+                <button 
+                  type="button" 
+                  id="btn-open-add-emp-modal"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setShowAddEmpModal(true)}
+                >
+                  <Plus size={16} />
+                  <span>הוסף עובד חדש לרשימה</span>
+                </button>
+              </div>
             </div>
 
             {/* Filter toolbar for employees */}
@@ -1540,7 +1575,7 @@ export default function AdminDashboard({ onBackToExam }) {
                   type="text"
                   id="input-search-employees"
                   className="search-input"
-                  placeholder="חיפוש לפי שם, מ.א, תפקיד..."
+                  placeholder="חיפוש לפי שם, מזהה, תפקיד..."
                   value={empSearchTerm}
                   onChange={(e) => setEmpSearchTerm(e.target.value)}
                 />
@@ -1599,8 +1634,10 @@ export default function AdminDashboard({ onBackToExam }) {
               <table className="admin-data-table">
                 <thead>
                   <tr>
-                    <th>מספר אישי (מ.א)</th>
+                    <th>מזהה פנימי</th>
                     <th>שם העובד</th>
+                    <th>שם משתמש</th>
+                    <th>סיסמה</th>
                     <th>מחלקה / מכשיריה</th>
                     <th>תפקיד</th>
                     <th>שינוי רמת מבחן (1-3)</th>
@@ -1613,6 +1650,46 @@ export default function AdminDashboard({ onBackToExam }) {
                     <tr key={emp.id} id={`emp-row-${emp.id}`}>
                       <td className="font-mono font-bold text-cyan">{emp.id}</td>
                       <td className="font-bold">{emp.name}</td>
+                      <td>
+                        <span className="badge-dept-pill" style={{ fontSize: '0.82rem', padding: '0.2rem 0.55rem' }}>
+                          {emp.username || emp.name}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                          <code className="font-mono" style={{ background: 'rgba(255,255,255,0.08)', padding: '2px 7px', borderRadius: '4px', fontSize: '0.84rem' }}>
+                            {emp.isAdmin ? 'Hanan4343!' : (emp.password || '—')}
+                          </code>
+                          {emp.password && (
+                            <button
+                              type="button"
+                              onClick={() => copyPasswordToClipboard(emp.id, emp.isAdmin ? 'Hanan4343!' : emp.password)}
+                              title="העתק סיסמה ללוח"
+                              style={{ 
+                                padding: '3px 5px', 
+                                cursor: 'pointer', 
+                                background: copiedEmpId === emp.id ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)', 
+                                border: '1px solid rgba(255,255,255,0.1)', 
+                                borderRadius: '4px',
+                                color: copiedEmpId === emp.id ? '#10b981' : '#94a3b8',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                fontSize: '0.74rem'
+                              }}
+                            >
+                              {copiedEmpId === emp.id ? (
+                                <>
+                                  <CheckCircle2 size={13} />
+                                  <span>הועתק!</span>
+                                </>
+                              ) : (
+                                <Copy size={13} />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </td>
                       <td>{emp.department}</td>
                       <td>{emp.role}</td>
                       <td>
@@ -1650,7 +1727,7 @@ export default function AdminDashboard({ onBackToExam }) {
                         )}
                       </td>
                       <td>
-                        {String(emp.id).trim() === '9999' ? (
+                        {emp.isAdmin || String(emp.id).trim() === 'admin' || String(emp.id).trim() === '9999' ? (
                           <span className="text-muted" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
                             מוגן (Admin)
                           </span>
@@ -1670,7 +1747,7 @@ export default function AdminDashboard({ onBackToExam }) {
                   ))}
                   {filteredEmployees.length === 0 && (
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                      <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                         לא נמצאו עובדים התואמים לחיפוש ולסינון הנוכחי
                       </td>
                     </tr>
@@ -1941,25 +2018,55 @@ export default function AdminDashboard({ onBackToExam }) {
             </div>
             <form onSubmit={handleAddEmployee} className="modal-form">
               <div className="form-group">
-                <label className="form-label">מספר אישי (מ.א)</label>
+                <label className="form-label">שם העובד (שם פרטי + אות משפחה)</label>
                 <input 
                   type="text" 
                   className="form-input" 
-                  placeholder="לדוגמה: 134169"
-                  value={newEmpId}
-                  onChange={(e) => setNewEmpId(e.target.value)}
+                  placeholder="לדוגמה: ישראל י' או ברק ח'"
+                  value={newEmpName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewEmpName(val);
+                    if (!newEmpUsername || newEmpUsername === newEmpName) {
+                      setNewEmpUsername(val);
+                    }
+                  }}
+                  required
+                />
+                <small className="label-subtext">תואם תקנות הגנת המידע - ללא שם משפחה מלא וללא מספר אישי</small>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">שם משתמש לכניסה</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="לדוגמה: ישראל י'"
+                  value={newEmpUsername}
+                  onChange={(e) => setNewEmpUsername(e.target.value)}
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">שם מלא של העובד</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <label className="form-label" style={{ margin: 0 }}>סיסמה מאובטחת</label>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setNewEmpPassword(generateRandomPassword())}
+                    style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                  >
+                    <Sparkles size={12} />
+                    <span>ייצר סיסמה חזקה</span>
+                  </button>
+                </div>
                 <input 
                   type="text" 
-                  className="form-input" 
-                  placeholder="לדוגמה: ישראל ישראלי"
-                  value={newEmpName}
-                  onChange={(e) => setNewEmpName(e.target.value)}
+                  className="form-input font-mono" 
+                  placeholder="הזן סיסמה או לחץ 'ייצר סיסמה חזקה'..."
+                  value={newEmpPassword}
+                  onChange={(e) => setNewEmpPassword(e.target.value)}
                   required
                 />
               </div>

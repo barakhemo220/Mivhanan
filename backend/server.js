@@ -259,23 +259,24 @@ app.post('/api/auth/login', (req, res) => {
 
   // 1. Direct Admin Login Check
   const isAdminAttempt = (
-    cleanUser === '9999' || 
     cleanUser === 'admin' || 
     cleanUser === 'מנהל מערכת' || 
-    cleanUser === 'מנהל'
+    cleanUser === 'מנהל' ||
+    cleanUser === '9999'
   );
 
   if (isAdminAttempt) {
-    if (credential !== ADMIN_PASSWORD && credential !== '9999') {
+    if (credential !== ADMIN_PASSWORD) {
       return res.status(401).json({
         success: false,
         message: 'סיסמת מנהל מערכת שגויה. הגישה נדחתה.'
       });
     }
 
-    const adminMatch = employees.find(e => String(e.id).trim() === '9999') || {
-      id: '9999',
+    const adminMatch = employees.find(e => e.isAdmin || String(e.id).trim() === 'admin' || String(e.id).trim() === '9999') || {
+      id: 'admin',
       name: 'מנהל מערכת',
+      username: 'מנהל מערכת',
       department: 'הנהלת מכשור ובקרה',
       role: 'מנהל מערכת ראשי (Admin)',
       level: 3,
@@ -287,6 +288,7 @@ app.post('/api/auth/login', (req, res) => {
       employee: {
         id: adminMatch.id,
         name: adminMatch.name,
+        username: adminMatch.username || adminMatch.name,
         department: adminMatch.department,
         role: adminMatch.role,
         level: adminMatch.level || 3,
@@ -298,21 +300,28 @@ app.post('/api/auth/login', (req, res) => {
     });
   }
 
-  // 2. Regular Employee Login Check
-  const match = employees.find(emp => {
-    const empId = String(emp.id).trim().toLowerCase();
-    const empName = String(emp.name).trim().toLowerCase();
+  // 2. Regular Employee Login Check (Strong Password & Anonymized Username)
+  const normalizeHebrew = (str) => String(str || '').trim().toLowerCase().replace(/['"״׳]/g, '');
+  const normUser = normalizeHebrew(username);
 
-    // Option A: Username is employee name, Password is personal employee ID
-    const matchesNameAndId = (
-      (empName === cleanUser || empName.includes(cleanUser) || cleanUser.includes(empName)) &&
-      (empId === credential.toLowerCase())
+  const match = employees.find(emp => {
+    if (emp.isAdmin) return false;
+    const empUser = normalizeHebrew(emp.username || emp.name);
+    const empName = normalizeHebrew(emp.name);
+    const empId = String(emp.id).trim().toLowerCase();
+
+    // Flexible username match (e.g. "ניר א'", "ניר א", "ברק ח'", "ברק א'")
+    const userMatches = (
+      empUser === normUser ||
+      empName === normUser ||
+      empId === cleanUser ||
+      (normUser === 'ברק א' && empName === 'ברק ח')
     );
 
-    // Option B: Username is personal employee ID, Password is also personal employee ID
-    const matchesIdBoth = (empId === cleanUser && credential.toLowerCase() === empId);
+    // Secure password verification
+    const passMatches = (emp.password && emp.password === credential);
 
-    return matchesNameAndId || matchesIdBoth;
+    return userMatches && passMatches;
   });
 
   if (!match) {
@@ -322,16 +331,6 @@ app.post('/api/auth/login', (req, res) => {
     });
   }
 
-  // If matched employee is an admin:
-  if (match.isAdmin) {
-    if (credential !== ADMIN_PASSWORD && credential !== String(match.id).trim()) {
-      return res.status(401).json({
-        success: false,
-        message: 'סיסמת מנהל מערכת שגויה. הגישה נדחתה.'
-      });
-    }
-  }
-
   const eligibility = checkExamEligibility(match);
 
   res.json({
@@ -339,6 +338,7 @@ app.post('/api/auth/login', (req, res) => {
     employee: {
       id: match.id,
       name: match.name,
+      username: match.username || match.name,
       department: match.department,
       role: match.role,
       level: match.level || 2,
@@ -959,7 +959,7 @@ app.get('/api/admin/export-csv', (req, res) => {
   const results = readJson(RESULTS_FILE, []);
 
   // UTF-8 BOM header so Hebrew opens without mojibake in Microsoft Excel
-  let csv = '\uFEFFמזהה תוצאה,מספר אישי,שם עובד,מחלקה,תאריך ושעה,ציון,שאלות נכונות,סה"כ שאלות,סטטוס,זמן בשניות\n';
+  let csv = '\uFEFFמזהה תוצאה,מזהה עובד,שם עובד,מחלקה,תאריך ושעה,ציון,שאלות נכונות,סה"כ שאלות,סטטוס,זמן בשניות\n';
 
   results.forEach(r => {
     const dateFormatted = new Date(r.submittedAt).toLocaleString('he-IL');
@@ -969,6 +969,23 @@ app.get('/api/admin/export-csv', (req, res) => {
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="mivhanan_results.csv"');
+  res.send(csv);
+});
+
+// Export Employee Login Credentials (Username & Password list for Admin Distribution)
+app.get('/api/admin/export-credentials-csv', (req, res) => {
+  const employees = readJson(EMPLOYEES_FILE, []);
+
+  let csv = '\uFEFFמזהה פנימי,שם עובד,שם משתמש,סיסמה,מחלקה,תפקיד,רמת מבחן,תפקיד ניהולי\n';
+
+  employees.forEach(emp => {
+    const isAdminStr = emp.isAdmin ? 'מנהל מערכת' : 'עובד מוסמך';
+    const pwd = emp.isAdmin ? 'Hanan4343!' : (emp.password || '—');
+    csv += `"${emp.id}","${emp.name}","${emp.username || emp.name}","${pwd}","${emp.department || ''}","${emp.role || ''}",${emp.level || 2},"${isAdminStr}"\n`;
+  });
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="mivhanan_credentials.csv"');
   res.send(csv);
 });
 
@@ -1226,24 +1243,47 @@ app.get('/api/admin/employees', (req, res) => {
 });
 
 app.post('/api/admin/employees', (req, res) => {
-  const { id, name, department, role, level, isAdmin } = req.body;
-  if (!id || !name) {
-    return res.status(400).json({ success: false, message: 'נדרש מספר אישי ושם עובד' });
+  const { id, name, username, password, department, role, level, isAdmin } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, message: 'נדרש שם עובד' });
   }
 
   const employees = readJson(EMPLOYEES_FILE, []);
-  if (employees.some(e => String(e.id).trim() === String(id).trim())) {
-    return res.status(400).json({ success: false, message: 'מספר אישי זה כבר קיים במערכת' });
+  const cleanName = String(name).trim();
+  const cleanUser = username ? String(username).trim() : cleanName;
+
+  // Generate anonymous ID if not provided (emp_01, emp_02, etc.)
+  let assignedId = id ? String(id).trim() : '';
+  if (!assignedId) {
+    const nextNum = employees.length + 1;
+    assignedId = `emp_${String(nextNum).padStart(2, '0')}`;
+  }
+
+  // Generate strong password if not provided
+  let assignedPass = password ? String(password).trim() : '';
+  if (!assignedPass) {
+    const prefixes = ['Miv', 'Sec', 'Aut', 'Pro', 'Con', 'Saf', 'Tek', 'Ctl'];
+    const prefix = prefixes[employees.length % prefixes.length];
+    const rndNum = Math.floor(1000 + Math.random() * 8999);
+    assignedPass = `${prefix}!${rndNum}#`;
+  }
+
+  if (employees.some(e => String(e.id).trim() === assignedId)) {
+    return res.status(400).json({ success: false, message: 'מזהה עובד זה כבר קיים במערכת' });
   }
 
   const newEmp = {
-    id: String(id).trim(),
-    name: String(name).trim(),
+    id: assignedId,
+    name: cleanName,
+    username: cleanUser,
+    password: assignedPass,
     department: department || 'מכשיריית חומר גלם',
     role: role || 'מכשירן',
     level: level ? parseInt(level, 10) : 2,
     isAdmin: Boolean(isAdmin),
-    email: `${String(id).trim()}@company.com`
+    email: `${assignedId}@mivhanan.internal`,
+    nextExamDate: null,
+    scheduleNotes: ''
   };
 
   employees.push(newEmp);
@@ -1281,7 +1321,7 @@ app.patch('/api/admin/employees/:id/level', (req, res) => {
 // Update full employee details
 app.put('/api/admin/employees/:id', (req, res) => {
   const { id } = req.params;
-  const { name, department, role, level, isAdmin } = req.body;
+  const { name, username, password, department, role, level, isAdmin } = req.body;
 
   const employees = readJson(EMPLOYEES_FILE, []);
   const empIndex = employees.findIndex(e => String(e.id).trim() === String(id).trim());
@@ -1290,7 +1330,16 @@ app.put('/api/admin/employees/:id', (req, res) => {
     return res.status(404).json({ success: false, message: 'העובד לא נמצא במערכת' });
   }
 
-  if (name !== undefined) employees[empIndex].name = name;
+  if (name !== undefined) {
+    employees[empIndex].name = String(name).trim();
+    if (!employees[empIndex].username) employees[empIndex].username = String(name).trim();
+  }
+  if (username !== undefined && String(username).trim() !== '') {
+    employees[empIndex].username = String(username).trim();
+  }
+  if (password !== undefined && String(password).trim() !== '') {
+    employees[empIndex].password = String(password).trim();
+  }
   if (department !== undefined) employees[empIndex].department = department;
   if (role !== undefined) employees[empIndex].role = role;
   if (level !== undefined) employees[empIndex].level = parseInt(level, 10);
