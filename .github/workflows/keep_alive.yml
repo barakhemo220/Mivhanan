@@ -1,0 +1,41 @@
+name: Server Keep-Alive Ping
+
+on:
+  schedule:
+    # Run every 14 minutes to prevent free tier cloud instances from sleeping
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'כתובת URL לבדיקה ידנית (אופציונלי - דורס את ה-Secret)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  ping:
+    name: Ping Health Endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keep-Alive Ping
+        env:
+          SECRET_URL: ${{ secrets.SERVER_URL }}
+          INPUT_URL: ${{ inputs.target_url }}
+        run: |
+          TARGET_URL="${INPUT_URL:-$SECRET_URL}"
+
+          if [ -z "$TARGET_URL" ]; then
+            echo "::warning title=Missing SERVER_URL::No SERVER_URL configured. Please set the 'SERVER_URL' secret in repository Settings -> Secrets and variables -> Actions."
+            echo "Skipping ping step until SERVER_URL is configured."
+            exit 0
+          fi
+
+          # Ensure /api/health path if base domain provided
+          if [[ "$TARGET_URL" != *"/api/health"* ]]; then
+            TARGET_URL="${TARGET_URL%/}/api/health"
+          fi
+
+          echo "Pinging: $TARGET_URL at $(date -u)"
+          RESPONSE=$(curl -f -s -S --max-time 30 "$TARGET_URL")
+          echo "Server response: $RESPONSE"
+          echo "Ping completed successfully!"
