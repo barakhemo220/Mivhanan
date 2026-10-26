@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
@@ -5,9 +6,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import AdmZip from 'adm-zip';
+import { 
+  connectToMongoDB, 
+  isDbConnected, 
+  EmployeeModel, 
+  QuestionModel, 
+  ExamResultModel, 
+  SavedPdfModel,
+  syncAtlasToLocalDisk
+} from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Initiate MongoDB Atlas cloud connection (with local fallback)
+connectToMongoDB().catch(err => console.error('MongoDB Atlas init error:', err));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -73,9 +86,13 @@ const zipUpload = multer({
 // Serve static images
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// Health check endpoint (for keep-alive pings like UptimeRobot)
+// Health check endpoint (for keep-alive pings and status inspection)
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    time: new Date().toISOString(),
+    database: isDbConnected() ? 'connected (MongoDB Atlas)' : 'local JSON fallback'
+  });
 });
 
 const EMPLOYEES_FILE = path.join(__dirname, 'data/employees.json');
@@ -97,10 +114,27 @@ const readJson = (filePath, fallback = []) => {
   }
 };
 
-// Helper to write JSON file safely
+// Helper to write JSON file safely and synchronize immediately to MongoDB Atlas
 const writeJson = (filePath, data) => {
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+
+    // Real-Time Cloud Sync to MongoDB Atlas
+    if (isDbConnected()) {
+      if (filePath === EMPLOYEES_FILE) {
+        EmployeeModel.deleteMany({})
+          .then(() => EmployeeModel.insertMany(data))
+          .catch(e => console.error('Atlas sync error (employees):', e.message));
+      } else if (filePath === QUESTIONS_FILE) {
+        QuestionModel.deleteMany({})
+          .then(() => QuestionModel.insertMany(data))
+          .catch(e => console.error('Atlas sync error (questions):', e.message));
+      } else if (filePath === RESULTS_FILE) {
+        ExamResultModel.deleteMany({})
+          .then(() => ExamResultModel.insertMany(data))
+          .catch(e => console.error('Atlas sync error (results):', e.message));
+      }
+    }
     return true;
   } catch (err) {
     console.error(`Error writing ${filePath}:`, err);
@@ -581,14 +615,28 @@ app.post('/api/results/:id/pdf', (req, res) => {
       writeJson(RESULTS_FILE, results);
     }
 
-    res.json({ success: true, message: 'קובץ ה-PDF נשמר בהצלחה בשרת', pdfUrl: `/api/results/${id}/pdf` });
+    // Persist PDF in MongoDB Atlas for permanent cloud availability
+    if (isDbConnected()) {
+      SavedPdfModel.findOneAndUpdate(
+        { filename: `${id}.pdf` },
+        { 
+          filename: `${id}.pdf`, 
+          employeeId: idx !== -1 ? results[idx].employeeId : '', 
+          dataBase64: cleanBase64, 
+          sizeBytes: buffer.length 
+        },
+        { upsert: true }
+      ).catch(e => console.error('Atlas PDF save error:', e.message));
+    }
+
+    res.json({ success: true, message: 'קובץ ה-PDF נשמר בהצלחה בשרת ובענן', pdfUrl: `/api/results/${id}/pdf` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'שגיאה בשמירת קובץ ה-PDF: ' + err.message });
   }
 });
 
-// Download / stream saved PDF
-app.get('/api/results/:id/pdf', (req, res) => {
+// Download / stream saved PDF (with MongoDB Atlas cloud recovery)
+app.get('/api/results/:id/pdf', async (req, res) => {
   const { id } = req.params;
   const filePath = path.join(SAVED_EXAMS_PDF_DIR, `${id}.pdf`);
   const results = readJson(RESULTS_FILE, []);
@@ -599,6 +647,22 @@ app.get('/api/results/:id/pdf', (req, res) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="mivhan_${encodeURIComponent(employeeName)}_${id}.pdf"`);
     return fs.createReadStream(filePath).pipe(res);
+  }
+
+  // If missing from local disk (e.g. Render restarted container), retrieve from MongoDB Atlas
+  if (isDbConnected()) {
+    try {
+      const pdfDoc = await SavedPdfModel.findOne({ filename: `${id}.pdf` });
+      if (pdfDoc && pdfDoc.dataBase64) {
+        const buffer = Buffer.from(pdfDoc.dataBase64, 'base64');
+        fs.writeFileSync(filePath, buffer);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="mivhan_${encodeURIComponent(employeeName)}_${id}.pdf"`);
+        return res.send(buffer);
+      }
+    } catch (err) {
+      console.error('Atlas PDF retrieval error:', err.message);
+    }
   }
 
   // Redirect to printable report if static PDF is not yet saved
@@ -1017,6 +1081,9 @@ app.delete('/api/admin/results/:id', (req, res) => {
   const pdfPath = path.join(SAVED_EXAMS_PDF_DIR, `${cleanId}.pdf`);
   if (fs.existsSync(pdfPath)) {
     try { fs.unlinkSync(pdfPath); } catch {}
+  }
+  if (isDbConnected()) {
+    SavedPdfModel.deleteOne({ filename: `${cleanId}.pdf` }).catch(() => {});
   }
 
   res.json({ success: true, message: 'רשומת המבחן נמחקה בהצלחה', remainingCount: filtered.length });

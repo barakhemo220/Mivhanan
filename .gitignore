@@ -23,3 +23,9 @@ Thumbs.db
 # Python Cache
 __pycache__/
 *.pyc
+
+# Environment & Credentials
+.env
+*.env
+.env.*
+atlas-credentials*

@@ -10,9 +10,11 @@
     "correctCount": 0,
     "timeSpentSeconds": 21,
     "status": "failed",
-    "answers": {
-      "q180": 0
-    },
+    "answers": [
+      {
+        "q180": 0
+      }
+    ],
     "questionIds": [
       "q180",
       "q259",
@@ -359,7 +361,9 @@
     ],
     "hasPdf": true,
     "pdfUrl": "/api/results/result-1792989256129/pdf",
-    "pdfSavedAt": "2026-10-26T04:34:37.699Z"
+    "pdfSavedAt": "2026-10-26T04:34:37.699Z",
+    "createdAt": "2026-10-26T07:24:19.567Z",
+    "updatedAt": "2026-10-26T07:24:19.567Z"
   },
   {
     "id": "result-1792965287684",
@@ -372,9 +376,15 @@
     "correctCount": 1,
     "timeSpentSeconds": 93,
     "status": "failed",
-    "answers": {
-      "q101": 1
-    }
+    "answers": [
+      {
+        "q101": 1
+      }
+    ],
+    "questionIds": [],
+    "review": [],
+    "createdAt": "2026-10-26T07:24:19.567Z",
+    "updatedAt": "2026-10-26T07:24:19.567Z"
   },
   {
     "id": "result-1792381852919",
@@ -387,11 +397,17 @@
     "correctCount": 2,
     "timeSpentSeconds": 0,
     "status": "failed",
-    "answers": {
-      "q46": 1,
-      "q23": 2,
-      "q58": 0
-    }
+    "answers": [
+      {
+        "q46": 1,
+        "q23": 2,
+        "q58": 0
+      }
+    ],
+    "questionIds": [],
+    "review": [],
+    "createdAt": "2026-10-26T07:24:19.567Z",
+    "updatedAt": "2026-10-26T07:24:19.567Z"
   },
   {
     "id": "result-1792348068301",
@@ -404,9 +420,15 @@
     "correctCount": 1,
     "timeSpentSeconds": 0,
     "status": "passed",
-    "answers": {
-      "q8": 0
-    }
+    "answers": [
+      {
+        "q8": 0
+      }
+    ],
+    "questionIds": [],
+    "review": [],
+    "createdAt": "2026-10-26T07:24:19.568Z",
+    "updatedAt": "2026-10-26T07:24:19.568Z"
   },
   {
     "id": "result-1792347587114",
@@ -419,10 +441,16 @@
     "correctCount": 2,
     "timeSpentSeconds": 0,
     "status": "passed",
-    "answers": {
-      "q6": 1,
-      "q1": 1
-    }
+    "answers": [
+      {
+        "q6": 1,
+        "q1": 1
+      }
+    ],
+    "questionIds": [],
+    "review": [],
+    "createdAt": "2026-10-26T07:24:19.568Z",
+    "updatedAt": "2026-10-26T07:24:19.568Z"
   },
   {
     "id": "result-demo-1",
@@ -435,20 +463,26 @@
     "correctCount": 9,
     "timeSpentSeconds": 485,
     "status": "passed",
-    "answers": {
-      "q1": 1,
-      "q2": 1,
-      "q3": 1,
-      "q4": 1,
-      "q5": 2,
-      "q6": 1,
-      "q7": 1,
-      "q8": 0,
-      "q9": 1,
-      "q10": 0
-    },
+    "answers": [
+      {
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 2,
+        "q6": 1,
+        "q7": 1,
+        "q8": 0,
+        "q9": 1,
+        "q10": 0
+      }
+    ],
+    "questionIds": [],
+    "review": [],
     "hasPdf": true,
     "pdfUrl": "/api/results/result-demo-1/pdf",
-    "pdfSavedAt": "2026-10-26T04:36:31.764Z"
+    "pdfSavedAt": "2026-10-26T04:36:31.764Z",
+    "createdAt": "2026-10-26T07:24:19.568Z",
+    "updatedAt": "2026-10-26T07:24:19.568Z"
   }
 ]

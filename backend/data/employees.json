@@ -9,7 +9,9 @@
     "email": "128704@company.com",
     "nextExamDate": null,
     "scheduleNotes": "מבחן בוצע ב-25.10.2026 (ציון: 5%)",
-    "scheduleUpdatedAt": "2026-10-25T21:54:47.696Z"
+    "scheduleUpdatedAt": "2026-10-25T21:54:47.696Z",
+    "createdAt": "2026-10-26T07:23:49.875Z",
+    "updatedAt": "2026-10-26T07:23:49.875Z"
   },
   {
     "id": "123321",
@@ -21,7 +23,9 @@
     "email": "123321@company.com",
     "nextExamDate": null,
     "scheduleNotes": "מבחן בוצע ב-25.10.2026 (ציון: 0%)",
-    "scheduleUpdatedAt": "2026-10-25T21:28:28.258Z"
+    "scheduleUpdatedAt": "2026-10-25T21:28:28.258Z",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "14403",
@@ -33,7 +37,9 @@
     "email": "14403@company.com",
     "nextExamDate": null,
     "scheduleNotes": "מבחן בוצע ב-26.10.2026 (ציון: 0%)",
-    "scheduleUpdatedAt": "2026-10-26T04:34:16.137Z"
+    "scheduleUpdatedAt": "2026-10-26T04:34:16.137Z",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "18171",
@@ -42,7 +48,9 @@
     "role": "מכשירן אשלג ב'",
     "level": 2,
     "isAdmin": false,
-    "email": "18171@company.com"
+    "email": "18171@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "130065",
@@ -51,7 +59,9 @@
     "role": "מכשירן אשלג ב'",
     "level": 2,
     "isAdmin": false,
-    "email": "130065@company.com"
+    "email": "130065@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "136777",
@@ -60,7 +70,9 @@
     "role": "מכשירן אשלג ב'",
     "level": 2,
     "isAdmin": false,
-    "email": "136777@company.com"
+    "email": "136777@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "126387",
@@ -69,7 +81,9 @@
     "role": "מכשירן אשלג ב'",
     "level": 2,
     "isAdmin": false,
-    "email": "126387@company.com"
+    "email": "126387@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "141794",
@@ -78,7 +92,9 @@
     "role": "מכשירן אשלג ב'",
     "level": 2,
     "isAdmin": false,
-    "email": "141794@company.com"
+    "email": "141794@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "6396",
@@ -87,7 +103,9 @@
     "role": "מנהל מכשיריית ברום / כלור",
     "level": 3,
     "isAdmin": false,
-    "email": "6396@company.com"
+    "email": "6396@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "9285",
@@ -96,7 +114,9 @@
     "role": "מכשירן ברום / כלור",
     "level": 2,
     "isAdmin": false,
-    "email": "9285@company.com"
+    "email": "9285@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "10129",
@@ -105,7 +125,9 @@
     "role": "מכשירן ברום / כלור",
     "level": 2,
     "isAdmin": false,
-    "email": "10129@company.com"
+    "email": "10129@company.com",
+    "createdAt": "2026-10-26T07:23:49.877Z",
+    "updatedAt": "2026-10-26T07:23:49.877Z"
   },
   {
     "id": "6039",
@@ -114,7 +136,9 @@
     "role": "מכשירן ברום / כלור",
     "level": 2,
     "isAdmin": false,
-    "email": "6039@company.com"
+    "email": "6039@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "129109",
@@ -123,7 +147,9 @@
     "role": "מכשירן ברום / כלור",
     "level": 2,
     "isAdmin": false,
-    "email": "129109@company.com"
+    "email": "129109@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "15153",
@@ -132,7 +158,9 @@
     "role": "מכשירן ברום / כלור",
     "level": 2,
     "isAdmin": false,
-    "email": "15153@company.com"
+    "email": "15153@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "14279",
@@ -141,7 +169,9 @@
     "role": "מנהל מכשיריית גלעון",
     "level": 3,
     "isAdmin": false,
-    "email": "14279@company.com"
+    "email": "14279@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "12681",
@@ -150,7 +180,9 @@
     "role": "מכשירן גלעון",
     "level": 2,
     "isAdmin": false,
-    "email": "12681@company.com"
+    "email": "12681@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "12641",
@@ -159,7 +191,9 @@
     "role": "מכשירן גלעון",
     "level": 2,
     "isAdmin": false,
-    "email": "12641@company.com"
+    "email": "12641@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "132668",
@@ -168,7 +202,9 @@
     "role": "מכשירן גלעון",
     "level": 2,
     "isAdmin": false,
-    "email": "132668@company.com"
+    "email": "132668@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "9430",
@@ -177,7 +213,9 @@
     "role": "מנהל מכשיריית חומר גלם",
     "level": 3,
     "isAdmin": false,
-    "email": "9430@company.com"
+    "email": "9430@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "8901",
@@ -186,7 +224,9 @@
     "role": "מכשירן חומר גלם",
     "level": 2,
     "isAdmin": false,
-    "email": "8901@company.com"
+    "email": "8901@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "10128",
@@ -195,7 +235,9 @@
     "role": "מכשירן חומר גלם",
     "level": 2,
     "isAdmin": false,
-    "email": "10128@company.com"
+    "email": "10128@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "17315",
@@ -204,7 +246,9 @@
     "role": "מכשירן חומר גלם",
     "level": 2,
     "isAdmin": false,
-    "email": "17315@company.com"
+    "email": "17315@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "134168",
@@ -216,7 +260,9 @@
     "email": "134168@company.com",
     "nextExamDate": null,
     "scheduleNotes": "",
-    "scheduleUpdatedAt": "2026-10-25T20:28:46.337Z"
+    "scheduleUpdatedAt": "2026-10-25T20:28:46.337Z",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "14570",
@@ -225,7 +271,9 @@
     "role": "מנהל מכשיריית מלחים",
     "level": 3,
     "isAdmin": false,
-    "email": "14570@company.com"
+    "email": "14570@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "8542",
@@ -234,7 +282,9 @@
     "role": "מכשירן מלחים",
     "level": 2,
     "isAdmin": false,
-    "email": "8542@company.com"
+    "email": "8542@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "18030",
@@ -243,7 +293,9 @@
     "role": "מכשירן מלחים",
     "level": 2,
     "isAdmin": false,
-    "email": "18030@company.com"
+    "email": "18030@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "14886",
@@ -252,7 +304,9 @@
     "role": "מכשירן מלחים",
     "level": 2,
     "isAdmin": false,
-    "email": "14886@company.com"
+    "email": "14886@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "6011",
@@ -261,7 +315,9 @@
     "role": "מנהל מכשיריית מקלף",
     "level": 3,
     "isAdmin": false,
-    "email": "6011@company.com"
+    "email": "6011@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "5100",
@@ -270,7 +326,9 @@
     "role": "מכשירן מקלף",
     "level": 2,
     "isAdmin": false,
-    "email": "5100@company.com"
+    "email": "5100@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "127506",
@@ -279,7 +337,9 @@
     "role": "מכשירן מקלף",
     "level": 2,
     "isAdmin": false,
-    "email": "127506@company.com"
+    "email": "127506@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "17408",
@@ -288,7 +348,9 @@
     "role": "מכשירן מקלף",
     "level": 2,
     "isAdmin": false,
-    "email": "17408@company.com"
+    "email": "17408@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "140375",
@@ -297,7 +359,9 @@
     "role": "מכשירן מקלף",
     "level": 2,
     "isAdmin": false,
-    "email": "140375@company.com"
+    "email": "140375@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "9712",
@@ -306,7 +370,9 @@
     "role": "מנהל מכשיריית תחנת כוח",
     "level": 3,
     "isAdmin": false,
-    "email": "9712@company.com"
+    "email": "9712@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "9152",
@@ -315,7 +381,9 @@
     "role": "מכשירן תחנת כוח",
     "level": 2,
     "isAdmin": false,
-    "email": "9152@company.com"
+    "email": "9152@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "127029",
@@ -324,7 +392,9 @@
     "role": "מכשירן תחנת כוח",
     "level": 2,
     "isAdmin": false,
-    "email": "127029@company.com"
+    "email": "127029@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "127599",
@@ -333,7 +403,9 @@
     "role": "מכשירן תחנת כוח",
     "level": 2,
     "isAdmin": false,
-    "email": "127599@company.com"
+    "email": "127599@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "14359",
@@ -342,7 +414,9 @@
     "role": "מכשירן תחנת כוח",
     "level": 2,
     "isAdmin": false,
-    "email": "14359@company.com"
+    "email": "14359@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   },
   {
     "id": "9999",
@@ -351,6 +425,8 @@
     "role": "מנהל מערכת ראשי (Admin)",
     "level": 3,
     "isAdmin": true,
-    "email": "admin@company.com"
+    "email": "admin@company.com",
+    "createdAt": "2026-10-26T07:23:49.878Z",
+    "updatedAt": "2026-10-26T07:23:49.878Z"
   }
 ]
