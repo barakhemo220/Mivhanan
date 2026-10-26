@@ -3,8 +3,6 @@ import {
   ArrowLeft, 
   ShieldAlert, 
   Cpu, 
-  CheckCircle2, 
-  Lock, 
   Eye, 
   EyeOff, 
   ShieldCheck 
@@ -171,26 +169,6 @@ export default function LoginView({ onLoginSuccess }) {
             )}
           </button>
         </form>
-
-        {/* Information points */}
-        <div className="login-features-list">
-          <div className="feature-item">
-            <CheckCircle2 size={16} className="feature-icon" />
-            <span>הגרלה אקראית של שאלות מתוך בנק מבחנים מאובטח ב-Backend</span>
-          </div>
-          <div className="feature-item">
-            <CheckCircle2 size={16} className="feature-icon" />
-            <span>תזמון תקופתי מובנה לכל 4 חודשים לפי תקני המפעל</span>
-          </div>
-          <div className="feature-item">
-            <CheckCircle2 size={16} className="feature-icon" />
-            <span>הפקה ושמירה אוטומטית של קובץ דוח PDF מלא בסיום הבחינה</span>
-          </div>
-          <div className="feature-item">
-            <CheckCircle2 size={16} className="feature-icon" />
-            <span>תרשימים טכניים מוגדלים (ISA-5.1, ATEX, SIL, שקילה ובקרים)</span>
-          </div>
-        </div>
       </div>
     </div>
   );
