@@ -81,7 +81,7 @@ async function updateNames() {
 
   console.log('\n--- Updated Employee Names and Usernames ---');
   updatedEmployees.forEach(e => {
-    console.log(`${e.id.padEnd(8)} | ${e.name.padEnd(12)} | Username: ${e.username.padEnd(12)} | Password: ${e.password}`);
+    console.log(`${e.id.padEnd(8)} | ${e.name.padEnd(12)} | Username: ${e.username.padEnd(12)} | Password: [PROTECTED]`);
   });
 }
 

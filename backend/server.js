@@ -6,6 +6,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import AdmZip from 'adm-zip';
+import jwt from 'jsonwebtoken';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
 import { 
   connectToMongoDB, 
   isDbConnected, 
@@ -25,10 +29,163 @@ connectToMongoDB().catch(err => console.error('MongoDB Atlas init error:', err))
 const app = express();
 const PORT = process.env.PORT || 5000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Hanan4343!';
+const JWT_SECRET = process.env.JWT_SECRET || 'mivhanan_jwt_secret_industrial_2026_secure';
+const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || 'mivhanan_salt_key_2026_industrial';
+const ENCRYPTION_KEY = crypto.createHash('sha256').update(ENCRYPTION_SECRET).digest();
 
-app.use(cors());
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ limit: '25mb', extended: true }));
+// Security Headers & Express hardening
+app.use(helmet({
+  contentSecurityPolicy: false, // Permissive for inline SVG/Canvas/PDF renders
+  crossOriginEmbedderPolicy: false
+}));
+app.disable('x-powered-by');
+
+// Restrict CORS origins
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
+// Rate Limiting (Brute-Force & DoS Protection)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // max 30 login attempts per IP per 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'בוצעו יותר מדי ניסיונות התחברות. אנא המתן מספר דקות ונסה שוב.'
+  }
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 600, // max 600 requests per IP per 5 min
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use('/api/auth/login', loginLimiter);
+app.use('/api/', apiLimiter);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// -------------------------------------------------------------
+// Security & Cryptography Helper Utilities
+// -------------------------------------------------------------
+
+// AES-256-GCM Password Encryption
+export function encryptPassword(plainText) {
+  if (!plainText) return '';
+  const str = String(plainText).trim();
+  if (str.startsWith('enc:')) return str; // already encrypted
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
+  let encrypted = cipher.update(str, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag().toString('hex');
+  return `enc:${iv.toString('hex')}:${authTag}:${encrypted}`;
+}
+
+// AES-256-GCM Password Decryption
+export function decryptPassword(cipherText) {
+  if (!cipherText) return '';
+  const str = String(cipherText).trim();
+  if (!str.startsWith('enc:')) return str; // fallback for plain text
+  try {
+    const parts = str.split(':');
+    if (parts.length !== 4) return str;
+    const iv = Buffer.from(parts[1], 'hex');
+    const authTag = Buffer.from(parts[2], 'hex');
+    const encryptedText = parts[3];
+    const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
+    decipher.setAuthTag(authTag);
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (err) {
+    console.error('Password decryption error:', err.message);
+    return '—';
+  }
+}
+
+// Compare user-supplied password with stored password
+export function verifyPassword(inputPassword, storedPassword) {
+  if (!inputPassword || !storedPassword) return false;
+  const decrypted = decryptPassword(storedPassword);
+  return decrypted === String(inputPassword).trim();
+}
+
+// HTML Entity Escaping (Prevents Stored & Reflected XSS)
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// CSV Cell Sanitization (Neutralizes CSV Formula Injection CWE-1236)
+export function sanitizeCsvCell(val) {
+  let str = String(val === null || val === undefined ? '' : val);
+  if (/^[=\+\-@\t\r]/.test(str)) {
+    str = `'` + str;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
+// Safe PDF Path Resolver (Neutralizes Path Traversal CWE-22)
+export function getSafePdfPath(id) {
+  if (!id) return null;
+  const safeId = path.basename(String(id).trim()).replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!safeId) return null;
+  const resolvedBase = path.resolve(SAVED_EXAMS_PDF_DIR);
+  const resolvedTarget = path.resolve(SAVED_EXAMS_PDF_DIR, `${safeId}.pdf`);
+  if (!resolvedTarget.startsWith(resolvedBase)) return null;
+  return { safeId, targetPath: resolvedTarget };
+}
+
+// SVG Content Validator (Blocks Stored XSS in SVG uploads)
+export function validateSvgContent(bufferOrString) {
+  const text = typeof bufferOrString === 'string' ? bufferOrString : bufferOrString.toString('utf8');
+  const dangerousPatterns = /<\s*script|onload\s*=|onerror\s*=|onclick\s*=|onmouseover\s*=|javascript:|data:text\/html/i;
+  if (dangerousPatterns.test(text)) {
+    throw new Error('קובץ SVG מכיל קוד סקריפט לא מורשה ונחסם מטעמי אבטחה');
+  }
+  return true;
+}
+
+// -------------------------------------------------------------
+// Authentication & Authorization Middleware (JWT)
+// -------------------------------------------------------------
+export function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = (authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null) || req.query.token;
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'נדרשת הזדהות במערכת (טוקן חסר)' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ success: false, message: 'תוקף ההתחברות פג או שהטוקן אינו תקין' });
+    }
+    req.user = user;
+    next();
+  });
+}
+
+export function requireAdmin(req, res, next) {
+  authenticateToken(req, res, () => {
+    if (!req.user || !req.user.isAdmin) {
+      return res.status(403).json({ success: false, message: 'גישה נדחתה: פעולה זו מורשית למנהל מערכת בלבד' });
+    }
+    next();
+  });
+}
 
 // Ensure upload directory exists
 const QUESTIONS_IMAGES_DIR = path.join(__dirname, 'public/images/questions');
@@ -61,13 +218,14 @@ const upload = multer({
   storage,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|svg|gif/;
+    const allowedExts = /^(jpeg|jpg|png|webp|svg|gif)$/;
+    const allowedMimes = /^image\/(jpeg|jpg|png|webp|svg\+xml|gif)$/;
     const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
     const mime = file.mimetype;
-    if (allowed.test(ext) || allowed.test(mime)) {
+    if (allowedExts.test(ext) && allowedMimes.test(mime)) {
       cb(null, true);
     } else {
-      cb(new Error('סוג קובץ לא נתמך. נא להעלות תמונה מסוג JPG, PNG, WebP, SVG בלבד.'));
+      cb(new Error('סוג קובץ לא נתמך. נא להעלות תמונה תקינה מסוג JPG, PNG, WebP, SVG בלבד.'));
     }
   }
 });
@@ -242,6 +400,32 @@ function checkExamEligibility(employee) {
   };
 }
 
+// Automatically migrate plain passwords in employees.json to AES-256-GCM encryption
+function migratePlainPasswordsToEncrypted() {
+  try {
+    const employees = readJson(EMPLOYEES_FILE, []);
+    let count = 0;
+    const migrated = employees.map(emp => {
+      if (emp.password && !String(emp.password).startsWith('enc:')) {
+        count++;
+        return {
+          ...emp,
+          password: encryptPassword(emp.password)
+        };
+      }
+      return emp;
+    });
+
+    if (count > 0) {
+      writeJson(EMPLOYEES_FILE, migrated);
+      console.log(`🔒 Encrypted ${count} employee passwords with AES-256-GCM in storage.`);
+    }
+  } catch (err) {
+    console.error('Password migration error:', err);
+  }
+}
+migratePlainPasswordsToEncrypted();
+
 // -------------------------------------------------------------
 // 1. Authentication / Employee Verification
 // -------------------------------------------------------------
@@ -283,19 +467,28 @@ app.post('/api/auth/login', (req, res) => {
       isAdmin: true
     };
 
+    const adminEmployee = {
+      id: adminMatch.id,
+      name: adminMatch.name,
+      username: adminMatch.username || adminMatch.name,
+      department: adminMatch.department,
+      role: adminMatch.role,
+      level: adminMatch.level || 3,
+      isAdmin: true,
+      nextExamDate: null,
+      scheduleNotes: ''
+    };
+
+    const token = jwt.sign(
+      { id: adminEmployee.id, username: adminEmployee.username, isAdmin: true },
+      JWT_SECRET,
+      { expiresIn: '12h' }
+    );
+
     return res.json({
       success: true,
-      employee: {
-        id: adminMatch.id,
-        name: adminMatch.name,
-        username: adminMatch.username || adminMatch.name,
-        department: adminMatch.department,
-        role: adminMatch.role,
-        level: adminMatch.level || 3,
-        isAdmin: true,
-        nextExamDate: null,
-        scheduleNotes: ''
-      },
+      token,
+      employee: adminEmployee,
       eligibility: { canTakeExam: false, reason: 'ADMIN_USER', message: 'מנהל מערכת אינו נדרש לבצע מבחנים תקופתיים.' }
     });
   }
@@ -320,8 +513,8 @@ app.post('/api/auth/login', (req, res) => {
       (normUser === 'אדוארד ר' && empName === 'אדי ר')
     );
 
-    // Secure password verification
-    const passMatches = (emp.password && emp.password === credential);
+    // Secure encrypted password verification
+    const passMatches = verifyPassword(credential, emp.password);
 
     return userMatches && passMatches;
   });
@@ -335,19 +528,28 @@ app.post('/api/auth/login', (req, res) => {
 
   const eligibility = checkExamEligibility(match);
 
+  const employeeData = {
+    id: match.id,
+    name: match.name,
+    username: match.username || match.name,
+    department: match.department,
+    role: match.role,
+    level: match.level || 2,
+    isAdmin: Boolean(match.isAdmin),
+    nextExamDate: match.nextExamDate || null,
+    scheduleNotes: match.scheduleNotes || ''
+  };
+
+  const token = jwt.sign(
+    { id: employeeData.id, username: employeeData.username, isAdmin: false },
+    JWT_SECRET,
+    { expiresIn: '12h' }
+  );
+
   res.json({
     success: true,
-    employee: {
-      id: match.id,
-      name: match.name,
-      username: match.username || match.name,
-      department: match.department,
-      role: match.role,
-      level: match.level || 2,
-      isAdmin: Boolean(match.isAdmin),
-      nextExamDate: match.nextExamDate || null,
-      scheduleNotes: match.scheduleNotes || ''
-    },
+    token,
+    employee: employeeData,
     eligibility
   });
 });
@@ -386,27 +588,28 @@ app.get('/api/exam/eligibility', (req, res) => {
 // -------------------------------------------------------------
 // 2. Exam Generation (Randomized, Secure: filtered by employee level & schedule)
 // -------------------------------------------------------------
-app.get('/api/exam/questions', (req, res) => {
-  const { employeeId } = req.query;
+app.get('/api/exam/questions', authenticateToken, (req, res) => {
+  // If not admin, strictly enforce caller's own ID
+  const targetEmployeeId = req.user.isAdmin 
+    ? (req.query.employeeId || req.user.id) 
+    : req.user.id;
 
   // Strict enforcement: employee must have a valid scheduled exam within the 30-day window
-  if (employeeId) {
-    const employees = readJson(EMPLOYEES_FILE, []);
-    const emp = employees.find(e => String(e.id).trim() === String(employeeId).trim());
-    if (emp && !emp.isAdmin) {
-      const eligibility = checkExamEligibility(emp);
-      if (!eligibility.canTakeExam) {
-        return res.status(403).json({
-          success: false,
-          ...eligibility
-        });
-      }
+  const employees = readJson(EMPLOYEES_FILE, []);
+  const emp = employees.find(e => String(e.id).trim() === String(targetEmployeeId).trim());
+  if (emp && !emp.isAdmin) {
+    const eligibility = checkExamEligibility(emp);
+    if (!eligibility.canTakeExam) {
+      return res.status(403).json({
+        success: false,
+        ...eligibility
+      });
     }
   }
 
   const questions = readJson(QUESTIONS_FILE, []);
   const count = parseInt(req.query.count) || 20;
-  const level = req.query.level ? parseInt(req.query.level) : null;
+  const level = req.query.level ? parseInt(req.query.level) : (emp?.level || 2);
 
   if (!questions.length) {
     return res.status(500).json({ success: false, message: 'בנק השאלות ריק' });
@@ -419,7 +622,6 @@ app.get('/api/exam/questions', (req, res) => {
     if (matching.length >= count) {
       candidateQuestions = matching;
     } else if (matching.length > 0) {
-      // Top up with other questions if not enough
       const others = questions.filter(q => q.level !== level);
       candidateQuestions = [...matching, ...others];
     }
@@ -453,8 +655,11 @@ app.get('/api/exam/questions', (req, res) => {
 // -------------------------------------------------------------
 // 3. Exam Submission, Scoring & Comprehensive Feedback
 // -------------------------------------------------------------
-app.post('/api/exam/submit', (req, res) => {
-  const { employeeId, employeeName, department, answers = {}, questionIds, totalQuestions: clientTotalQuestions, timeSpentSeconds } = req.body;
+app.post('/api/exam/submit', authenticateToken, (req, res) => {
+  const { answers = {}, questionIds, totalQuestions: clientTotalQuestions, timeSpentSeconds, department } = req.body;
+  // Non-admins can only submit for themselves
+  const employeeId = req.user.isAdmin ? (req.body.employeeId || req.user.id) : req.user.id;
+  const employeeName = req.user.isAdmin ? (req.body.employeeName || req.user.username) : req.user.username;
 
   if (!employeeId) {
     return res.status(400).json({ success: false, message: 'נתוני הגשה חסרים (מספר אישי נדרש)' });
@@ -463,7 +668,6 @@ app.post('/api/exam/submit', (req, res) => {
   const allQuestions = readJson(QUESTIONS_FILE, []);
   const questionMap = new Map(allQuestions.map(q => [q.id, q]));
 
-  // Determine the full list of question IDs that were part of this exam
   let examQuestionIds = [];
   if (Array.isArray(questionIds) && questionIds.length > 0) {
     examQuestionIds = questionIds;
@@ -471,7 +675,6 @@ app.post('/api/exam/submit', (req, res) => {
     examQuestionIds = Object.keys(answers);
   }
 
-  // The score must be calculated out of the full exam questions count (e.g. 20)
   const totalQuestions = clientTotalQuestions && clientTotalQuestions >= examQuestionIds.length 
     ? clientTotalQuestions 
     : (examQuestionIds.length > 0 ? examQuestionIds.length : 20);
@@ -615,14 +818,19 @@ function populateResultReview(resultRecord) {
 // 3.1 Saved Exam Inspection & PDF Management
 // -------------------------------------------------------------
 
-// Get full details of a saved exam (including complete review with questions and explanations)
-app.get('/api/results/:id', (req, res) => {
+// Get full details of a saved exam
+app.get('/api/results/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const results = readJson(RESULTS_FILE, []);
   const record = results.find(r => String(r.id).trim() === String(id).trim());
 
   if (!record) {
     return res.status(404).json({ success: false, message: 'רשומת מבחן לא נמצאה' });
+  }
+
+  // Authorization: must be admin or the exam taker
+  if (!req.user.isAdmin && req.user.id !== record.employeeId) {
+    return res.status(403).json({ success: false, message: 'אין לך הרשאה לצפות בתוצאה זו' });
   }
 
   const review = populateResultReview(record);
@@ -636,8 +844,12 @@ app.get('/api/results/:id', (req, res) => {
 });
 
 // Upload and save generated PDF for an exam
-app.post('/api/results/:id/pdf', (req, res) => {
-  const { id } = req.params;
+app.post('/api/results/:id/pdf', authenticateToken, (req, res) => {
+  const safePdf = getSafePdfPath(req.params.id);
+  if (!safePdf) {
+    return res.status(400).json({ success: false, message: 'מזהה מבחן לא חוקי' });
+  }
+  const { safeId, targetPath } = safePdf;
   const { pdfBase64 } = req.body;
 
   if (!pdfBase64) {
@@ -648,14 +860,13 @@ app.post('/api/results/:id/pdf', (req, res) => {
     const base64Index = pdfBase64.indexOf('base64,');
     const cleanBase64 = base64Index !== -1 ? pdfBase64.substring(base64Index + 7) : pdfBase64;
     const buffer = Buffer.from(cleanBase64, 'base64');
-    const filePath = path.join(SAVED_EXAMS_PDF_DIR, `${id}.pdf`);
-    fs.writeFileSync(filePath, buffer);
+    fs.writeFileSync(targetPath, buffer);
 
     const results = readJson(RESULTS_FILE, []);
-    const idx = results.findIndex(r => String(r.id).trim() === String(id).trim());
+    const idx = results.findIndex(r => String(r.id).trim() === safeId);
     if (idx !== -1) {
       results[idx].hasPdf = true;
-      results[idx].pdfUrl = `/api/results/${id}/pdf`;
+      results[idx].pdfUrl = `/api/results/${safeId}/pdf`;
       results[idx].pdfSavedAt = new Date().toISOString();
       writeJson(RESULTS_FILE, results);
     }
@@ -663,9 +874,9 @@ app.post('/api/results/:id/pdf', (req, res) => {
     // Persist PDF in MongoDB Atlas for permanent cloud availability
     if (isDbConnected()) {
       SavedPdfModel.findOneAndUpdate(
-        { filename: `${id}.pdf` },
+        { filename: `${safeId}.pdf` },
         { 
-          filename: `${id}.pdf`, 
+          filename: `${safeId}.pdf`, 
           employeeId: idx !== -1 ? results[idx].employeeId : '', 
           dataBase64: cleanBase64, 
           sizeBytes: buffer.length 
@@ -674,35 +885,43 @@ app.post('/api/results/:id/pdf', (req, res) => {
       ).catch(e => console.error('Atlas PDF save error:', e.message));
     }
 
-    res.json({ success: true, message: 'קובץ ה-PDF נשמר בהצלחה בשרת ובענן', pdfUrl: `/api/results/${id}/pdf` });
+    res.json({ success: true, message: 'קובץ ה-PDF נשמר בהצלחה בשרת ובענן', pdfUrl: `/api/results/${safeId}/pdf` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'שגיאה בשמירת קובץ ה-PDF: ' + err.message });
   }
 });
 
 // Download / stream saved PDF (with MongoDB Atlas cloud recovery)
-app.get('/api/results/:id/pdf', async (req, res) => {
-  const { id } = req.params;
-  const filePath = path.join(SAVED_EXAMS_PDF_DIR, `${id}.pdf`);
+app.get('/api/results/:id/pdf', authenticateToken, async (req, res) => {
+  const safePdf = getSafePdfPath(req.params.id);
+  if (!safePdf) {
+    return res.status(400).json({ success: false, message: 'מזהה מבחן לא חוקי' });
+  }
+  const { safeId, targetPath } = safePdf;
   const results = readJson(RESULTS_FILE, []);
-  const record = results.find(r => String(r.id).trim() === String(id).trim());
-  const employeeName = record?.employeeName || 'עובד';
+  const record = results.find(r => String(r.id).trim() === safeId);
 
-  if (fs.existsSync(filePath)) {
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="mivhan_${encodeURIComponent(employeeName)}_${id}.pdf"`);
-    return fs.createReadStream(filePath).pipe(res);
+  if (record && !req.user.isAdmin && req.user.id !== record.employeeId) {
+    return res.status(403).json({ success: false, message: 'אין לך הרשאה לצפות בקובץ זה' });
   }
 
-  // If missing from local disk (e.g. Render restarted container), retrieve from MongoDB Atlas
+  const employeeName = record?.employeeName || 'עובד';
+
+  if (fs.existsSync(targetPath)) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="mivhan_${encodeURIComponent(employeeName)}_${safeId}.pdf"`);
+    return fs.createReadStream(targetPath).pipe(res);
+  }
+
+  // If missing from local disk, retrieve from MongoDB Atlas
   if (isDbConnected()) {
     try {
-      const pdfDoc = await SavedPdfModel.findOne({ filename: `${id}.pdf` });
+      const pdfDoc = await SavedPdfModel.findOne({ filename: `${safeId}.pdf` });
       if (pdfDoc && pdfDoc.dataBase64) {
         const buffer = Buffer.from(pdfDoc.dataBase64, 'base64');
-        fs.writeFileSync(filePath, buffer);
+        fs.writeFileSync(targetPath, buffer);
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="mivhan_${encodeURIComponent(employeeName)}_${id}.pdf"`);
+        res.setHeader('Content-Disposition', `inline; filename="mivhan_${encodeURIComponent(employeeName)}_${safeId}.pdf"`);
         return res.send(buffer);
       }
     } catch (err) {
@@ -711,17 +930,22 @@ app.get('/api/results/:id/pdf', async (req, res) => {
   }
 
   // Redirect to printable report if static PDF is not yet saved
-  res.redirect(`/api/results/${id}/report?print=1`);
+  const tokenParam = req.query.token ? `&token=${encodeURIComponent(req.query.token)}` : '';
+  res.redirect(`/api/results/${safeId}/report?print=1${tokenParam}`);
 });
 
-// Standalone Printable Exam Report (styled for A4 printing and browser Save-to-PDF)
-app.get('/api/results/:id/report', (req, res) => {
+// Standalone Printable Exam Report (styled for A4 printing with complete XSS protection)
+app.get('/api/results/:id/report', authenticateToken, (req, res) => {
   const { id } = req.params;
   const results = readJson(RESULTS_FILE, []);
   const record = results.find(r => String(r.id).trim() === String(id).trim());
 
   if (!record) {
     return res.status(404).send('<h2>רשומת מבחן לא נמצאה</h2>');
+  }
+
+  if (!req.user.isAdmin && req.user.id !== record.employeeId) {
+    return res.status(403).send('<h2>אין לך הרשאה לצפות בדוח זה</h2>');
   }
 
   const review = populateResultReview(record);
@@ -738,7 +962,7 @@ app.get('/api/results/:id/report', (req, res) => {
 <html dir="rtl" lang="he">
 <head>
   <meta charset="UTF-8">
-  <title>דוח מבחן - ${record.employeeName} (${record.employeeId})</title>
+  <title>דוח מבחן - ${escapeHtml(record.employeeName)} (${escapeHtml(record.employeeId)})</title>
   <style>
     @page { size: A4; margin: 15mm; }
     * { box-sizing: border-box; }
@@ -868,12 +1092,12 @@ app.get('/api/results/:id/report', (req, res) => {
     </div>
 
     <div class="meta-grid">
-      <div class="meta-item"><strong>שם הנבחן:</strong> ${record.employeeName}</div>
-      <div class="meta-item"><strong>מספר אישי:</strong> ${record.employeeId}</div>
-      <div class="meta-item"><strong>מחלקה:</strong> ${record.department}</div>
-      <div class="meta-item"><strong>תאריך ושעה:</strong> ${dateFormatted}</div>
-      <div class="meta-item"><strong>משך בחינה:</strong> ${durationMins}</div>
-      <div class="meta-item"><strong>מזהה תוצאה:</strong> ${record.id}</div>
+      <div class="meta-item"><strong>שם הנבחן:</strong> ${escapeHtml(record.employeeName)}</div>
+      <div class="meta-item"><strong>מספר אישי:</strong> ${escapeHtml(record.employeeId)}</div>
+      <div class="meta-item"><strong>מחלקה:</strong> ${escapeHtml(record.department)}</div>
+      <div class="meta-item"><strong>תאריך ושעה:</strong> ${escapeHtml(dateFormatted)}</div>
+      <div class="meta-item"><strong>משך בחינה:</strong> ${escapeHtml(durationMins)}</div>
+      <div class="meta-item"><strong>מזהה תוצאה:</strong> ${escapeHtml(record.id)}</div>
     </div>
 
     <div class="score-banner">
@@ -900,13 +1124,13 @@ app.get('/api/results/:id/report', (req, res) => {
         <div class="question-box">
           <div class="q-header">
             <span>שאלה ${idx + 1} מתוך ${review.length}</span>
-            <span class="q-topic">${q.topic || 'מכשור ובקרה'}</span>
+            <span class="q-topic">${escapeHtml(q.topic || 'מכשור ובקרה')}</span>
             <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}">
               ${isCorrect ? '✓ תשובה נכונה' : '✗ תשובה שגויה'}
             </span>
           </div>
 
-          <div class="q-title">${q.question}</div>
+          <div class="q-title">${escapeHtml(q.question)}</div>
 
           <div class="options-list">
             ${(q.options || []).map((opt, optIdx) => {
@@ -926,13 +1150,13 @@ app.get('/api/results/:id/report', (req, res) => {
                 badge += ' <strong style="color:#15803d">(בחירתך)</strong>';
               }
 
-              return `<div class="${cls}"><strong>${letters[optIdx]}.</strong> ${opt} ${badge}</div>`;
+              return `<div class="${cls}"><strong>${letters[optIdx]}.</strong> ${escapeHtml(opt)} ${badge}</div>`;
             }).join('')}
           </div>
 
           ${q.explanation ? `
             <div class="explanation-box">
-              <strong>💡 הסבר טכני מקצועי:</strong> ${q.explanation}
+              <strong>💡 הסבר טכני מקצועי:</strong> ${escapeHtml(q.explanation)}
             </div>
           ` : ''}
         </div>
@@ -949,24 +1173,23 @@ app.get('/api/results/:id/report', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 4. Admin API - Exam Results & Analytics
+// 4. Admin API - Exam Results & Analytics (Strict Admin Only)
 // -------------------------------------------------------------
-app.get('/api/admin/results', (req, res) => {
+app.get('/api/admin/results', requireAdmin, (req, res) => {
   const results = readJson(RESULTS_FILE, []);
   res.json({ success: true, results });
 });
 
-// Export Results as Excel-friendly CSV with UTF-8 BOM
-app.get('/api/admin/export-csv', (req, res) => {
+// Export Results as Excel-friendly CSV with UTF-8 BOM & Formula Injection Protection
+app.get('/api/admin/export-csv', requireAdmin, (req, res) => {
   const results = readJson(RESULTS_FILE, []);
 
-  // UTF-8 BOM header so Hebrew opens without mojibake in Microsoft Excel
   let csv = '\uFEFFמזהה תוצאה,מזהה עובד,שם עובד,מחלקה,תאריך ושעה,ציון,שאלות נכונות,סה"כ שאלות,סטטוס,זמן בשניות\n';
 
   results.forEach(r => {
     const dateFormatted = new Date(r.submittedAt).toLocaleString('he-IL');
     const statusHe = r.status === 'passed' ? 'עבר' : 'נכשל';
-    csv += `"${r.id}","${r.employeeId}","${r.employeeName}","${r.department}","${dateFormatted}",${r.score},${r.correctCount},${r.totalQuestions},"${statusHe}",${r.timeSpentSeconds}\n`;
+    csv += `${sanitizeCsvCell(r.id)},${sanitizeCsvCell(r.employeeId)},${sanitizeCsvCell(r.employeeName)},${sanitizeCsvCell(r.department)},${sanitizeCsvCell(dateFormatted)},${r.score},${r.correctCount},${r.totalQuestions},${sanitizeCsvCell(statusHe)},${r.timeSpentSeconds}\n`;
   });
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -974,16 +1197,16 @@ app.get('/api/admin/export-csv', (req, res) => {
   res.send(csv);
 });
 
-// Export Employee Login Credentials (Username & Password list for Admin Distribution)
-app.get('/api/admin/export-credentials-csv', (req, res) => {
+// Export Employee Login Credentials (Username & Decrypted Password list for Admin Distribution)
+app.get('/api/admin/export-credentials-csv', requireAdmin, (req, res) => {
   const employees = readJson(EMPLOYEES_FILE, []);
 
   let csv = '\uFEFFמזהה פנימי,שם עובד,שם משתמש,סיסמה,מחלקה,תפקיד,רמת מבחן,תפקיד ניהולי\n';
 
   employees.forEach(emp => {
     const isAdminStr = emp.isAdmin ? 'מנהל מערכת' : 'עובד מוסמך';
-    const pwd = emp.isAdmin ? 'Hanan4343!' : (emp.password || '—');
-    csv += `"${emp.id}","${emp.name}","${emp.username || emp.name}","${pwd}","${emp.department || ''}","${emp.role || ''}",${emp.level || 2},"${isAdminStr}"\n`;
+    const pwd = emp.isAdmin ? ADMIN_PASSWORD : decryptPassword(emp.password);
+    csv += `${sanitizeCsvCell(emp.id)},${sanitizeCsvCell(emp.name)},${sanitizeCsvCell(emp.username || emp.name)},${sanitizeCsvCell(pwd)},${sanitizeCsvCell(emp.department || '')},${sanitizeCsvCell(emp.role || '')},${emp.level || 2},${sanitizeCsvCell(isAdminStr)}\n`;
   });
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -994,7 +1217,7 @@ app.get('/api/admin/export-credentials-csv', (req, res) => {
 // -------------------------------------------------------------
 // Full System Backup (ZIP) - All JSON files + all saved PDF reports
 // -------------------------------------------------------------
-app.get('/api/admin/backup-zip', (req, res) => {
+app.get('/api/admin/backup-zip', requireAdmin, (req, res) => {
   try {
     const zip = new AdmZip();
     if (fs.existsSync(EMPLOYEES_FILE)) zip.addLocalFile(EMPLOYEES_FILE, '', 'employees.json');
@@ -1014,8 +1237,8 @@ app.get('/api/admin/backup-zip', (req, res) => {
   }
 });
 
-// Full System Restore from uploaded ZIP (restores JSON files and all PDF reports)
-app.post('/api/admin/restore-zip', zipUpload.single('backupZip'), (req, res) => {
+// Full System Restore from uploaded ZIP (restores JSON files and all PDF reports with schema and Zip Slip validation)
+app.post('/api/admin/restore-zip', requireAdmin, zipUpload.single('backupZip'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'לא נבחר קובץ ZIP לשחזור' });
   }
@@ -1023,26 +1246,66 @@ app.post('/api/admin/restore-zip', zipUpload.single('backupZip'), (req, res) => 
   try {
     const zip = new AdmZip(req.file.path);
     const zipEntries = zip.getEntries();
-    let restoredCount = 0;
 
-    zipEntries.forEach(entry => {
+    // 1. Validate against Zip Slip (Path Traversal in Zip entries)
+    for (const entry of zipEntries) {
+      const entryName = entry.entryName.replace(/\\/g, '/');
+      if (entryName.includes('..') || entryName.startsWith('/')) {
+        try { fs.unlinkSync(req.file.path); } catch {}
+        return res.status(400).json({ success: false, message: 'קובץ ה-ZIP מכיל נתיבים לא חוקיים (Zip Slip נחסם)' });
+      }
+    }
+
+    // 2. Validate and stage JSON files before overwriting
+    let stagedEmployees = null;
+    let stagedResults = null;
+    let stagedQuestions = null;
+    const stagedPdfs = [];
+
+    for (const entry of zipEntries) {
       const entryName = entry.entryName.replace(/\\/g, '/');
       if (entryName === 'employees.json') {
-        fs.writeFileSync(EMPLOYEES_FILE, entry.getData());
-        restoredCount++;
+        const parsed = JSON.parse(entry.getData().toString('utf8'));
+        if (!Array.isArray(parsed)) throw new Error('מבנה employees.json בגיבוי אינו תקין (חייב להיות מערך)');
+        stagedEmployees = parsed;
       } else if (entryName === 'exam_results.json') {
-        fs.writeFileSync(RESULTS_FILE, entry.getData());
-        restoredCount++;
+        const parsed = JSON.parse(entry.getData().toString('utf8'));
+        if (!Array.isArray(parsed)) throw new Error('מבנה exam_results.json בגיבוי אינו תקין (חייב להיות מערך)');
+        stagedResults = parsed;
       } else if (entryName === 'questions.json') {
-        fs.writeFileSync(QUESTIONS_FILE, entry.getData());
-        restoredCount++;
+        const parsed = JSON.parse(entry.getData().toString('utf8'));
+        if (!Array.isArray(parsed)) throw new Error('מבנה questions.json בגיבוי אינו תקין (חייב להיות מערך)');
+        stagedQuestions = parsed;
       } else if (entryName.startsWith('saved_exams_pdf/') && !entry.isDirectory) {
         const filename = path.basename(entryName);
-        if (filename) {
-          fs.writeFileSync(path.join(SAVED_EXAMS_PDF_DIR, filename), entry.getData());
-          restoredCount++;
+        if (filename && filename.endsWith('.pdf')) {
+          const safeName = filename.replace(/[^a-zA-Z0-9_.-]/g, '');
+          stagedPdfs.push({ filename: safeName, data: entry.getData() });
         }
       }
+    }
+
+    let restoredCount = 0;
+    if (stagedEmployees) {
+      // Ensure passwords remain encrypted
+      const encryptedEmployees = stagedEmployees.map(emp => ({
+        ...emp,
+        password: encryptPassword(emp.password)
+      }));
+      writeJson(EMPLOYEES_FILE, encryptedEmployees);
+      restoredCount++;
+    }
+    if (stagedResults) {
+      writeJson(RESULTS_FILE, stagedResults);
+      restoredCount++;
+    }
+    if (stagedQuestions) {
+      writeJson(QUESTIONS_FILE, stagedQuestions);
+      restoredCount++;
+    }
+    stagedPdfs.forEach(pdf => {
+      fs.writeFileSync(path.join(SAVED_EXAMS_PDF_DIR, pdf.filename), pdf.data);
+      restoredCount++;
     });
 
     try { fs.unlinkSync(req.file.path); } catch {}
@@ -1060,7 +1323,7 @@ app.post('/api/admin/restore-zip', zipUpload.single('backupZip'), (req, res) => 
 });
 
 // Export 4-Month Periodic Exam Compliance Report to CSV with UTF-8 BOM
-app.get('/api/admin/export-schedules-csv', (req, res) => {
+app.get('/api/admin/export-schedules-csv', requireAdmin, (req, res) => {
   const employees = readJson(EMPLOYEES_FILE, []);
   const results = readJson(RESULTS_FILE, []);
 
@@ -1117,8 +1380,8 @@ app.get('/api/admin/export-schedules-csv', (req, res) => {
       }
     }
 
-    const notes = (emp.scheduleNotes || '').replace(/"/g, '""');
-    csv += `"${emp.id}","${emp.name}","${emp.department}","${emp.role}",${emp.level || 2},"${lastExamStr}","${lastScoreStr}","${lastStatusStr}","${targetDateStr}","${statusHebrew}","${daysStr}","${notes}"\n`;
+    const notes = emp.scheduleNotes || '';
+    csv += `${sanitizeCsvCell(emp.id)},${sanitizeCsvCell(emp.name)},${sanitizeCsvCell(emp.department)},${sanitizeCsvCell(emp.role)},${emp.level || 2},${sanitizeCsvCell(lastExamStr)},${sanitizeCsvCell(lastScoreStr)},${sanitizeCsvCell(lastStatusStr)},${sanitizeCsvCell(targetDateStr)},${sanitizeCsvCell(statusHebrew)},${sanitizeCsvCell(daysStr)},${sanitizeCsvCell(notes)}\n`;
   });
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -1127,7 +1390,7 @@ app.get('/api/admin/export-schedules-csv', (req, res) => {
 });
 
 // Delete Exam Result by ID
-app.delete('/api/admin/results/:id', (req, res) => {
+app.delete('/api/admin/results/:id', requireAdmin, (req, res) => {
   const cleanId = String(req.params.id || '').trim();
   const results = readJson(RESULTS_FILE, []);
   const initialLen = results.length;
@@ -1139,10 +1402,10 @@ app.delete('/api/admin/results/:id', (req, res) => {
 
   writeJson(RESULTS_FILE, filtered);
 
-  // Clean up PDF file if it exists
-  const pdfPath = path.join(SAVED_EXAMS_PDF_DIR, `${cleanId}.pdf`);
-  if (fs.existsSync(pdfPath)) {
-    try { fs.unlinkSync(pdfPath); } catch {}
+  // Clean up PDF file safely
+  const safePdf = getSafePdfPath(cleanId);
+  if (safePdf && fs.existsSync(safePdf.targetPath)) {
+    try { fs.unlinkSync(safePdf.targetPath); } catch {}
   }
   if (isDbConnected()) {
     SavedPdfModel.deleteOne({ filename: `${cleanId}.pdf` }).catch(() => {});
@@ -1155,18 +1418,37 @@ app.delete('/api/admin/results/:id', (req, res) => {
 // 5. Admin API - Question & Employee Management + Image Upload
 // -------------------------------------------------------------
 
-// Upload & auto-optimize question image
-app.post('/api/admin/upload-image', upload.single('image'), (req, res) => {
+// Upload & auto-optimize question image (Protected by requireAdmin and SVG validation)
+app.post('/api/admin/upload-image', requireAdmin, upload.single('image'), (req, res) => {
   try {
     let filename = '';
 
     if (req.file) {
       filename = req.file.filename;
+      // If SVG, check for malicious script tags
+      if (req.file.mimetype === 'image/svg+xml' || path.extname(filename).toLowerCase() === '.svg') {
+        const content = fs.readFileSync(req.file.path, 'utf8');
+        try {
+          validateSvgContent(content);
+        } catch (svgErr) {
+          try { fs.unlinkSync(req.file.path); } catch {}
+          return res.status(400).json({ success: false, message: svgErr.message });
+        }
+      }
     } else if (req.body.imageBase64) {
       const { imageBase64, mimeType } = req.body;
       const matches = imageBase64.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
       const buffer = matches ? Buffer.from(matches[2], 'base64') : Buffer.from(imageBase64, 'base64');
       const ext = mimeType ? (mimeType.includes('svg') ? '.svg' : mimeType.includes('webp') ? '.webp' : mimeType.includes('jpeg') ? '.jpg' : '.png') : '.png';
+      
+      if (ext === '.svg') {
+        try {
+          validateSvgContent(buffer);
+        } catch (svgErr) {
+          return res.status(400).json({ success: false, message: svgErr.message });
+        }
+      }
+
       filename = `q_upload_${Date.now()}_optimized${ext}`;
       fs.writeFileSync(path.join(QUESTIONS_IMAGES_DIR, filename), buffer);
     } else {
@@ -1196,12 +1478,12 @@ app.post('/api/admin/upload-image', upload.single('image'), (req, res) => {
   }
 });
 
-app.get('/api/admin/questions', (req, res) => {
+app.get('/api/admin/questions', requireAdmin, (req, res) => {
   const questions = readJson(QUESTIONS_FILE, []);
   res.json({ success: true, questions });
 });
 
-app.post('/api/admin/questions', (req, res) => {
+app.post('/api/admin/questions', requireAdmin, (req, res) => {
   const { topic, question, options, correctAnswer, explanation, image, level } = req.body;
   if (!question || !options || options.length !== 4 || correctAnswer === undefined) {
     return res.status(400).json({ success: false, message: 'פרטי שאלה לא מלאים (נדרשות 4 אפשרויות ותשובה נכונה)' });
@@ -1225,7 +1507,7 @@ app.post('/api/admin/questions', (req, res) => {
 });
 
 // Delete question by ID
-app.delete('/api/admin/questions/:id', (req, res) => {
+app.delete('/api/admin/questions/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const questions = readJson(QUESTIONS_FILE, []);
   const initialLen = questions.length;
@@ -1239,12 +1521,17 @@ app.delete('/api/admin/questions/:id', (req, res) => {
   res.json({ success: true, message: 'השאלה נמחקה בהצלחה', remainingCount: filtered.length });
 });
 
-app.get('/api/admin/employees', (req, res) => {
+app.get('/api/admin/employees', requireAdmin, (req, res) => {
   const employees = readJson(EMPLOYEES_FILE, []);
-  res.json({ success: true, employees });
+  // Decrypt passwords for the authenticated manager only
+  const formatted = employees.map(emp => ({
+    ...emp,
+    password: decryptPassword(emp.password)
+  }));
+  res.json({ success: true, employees: formatted });
 });
 
-app.post('/api/admin/employees', (req, res) => {
+app.post('/api/admin/employees', requireAdmin, (req, res) => {
   const { id, name, username, password, department, role, level, isAdmin } = req.body;
   if (!name) {
     return res.status(400).json({ success: false, message: 'נדרש שם עובד' });
@@ -1278,7 +1565,7 @@ app.post('/api/admin/employees', (req, res) => {
     id: assignedId,
     name: cleanName,
     username: cleanUser,
-    password: assignedPass,
+    password: encryptPassword(assignedPass),
     department: department || 'מכשיריית חומר גלם',
     role: role || 'מכשירן',
     level: level ? parseInt(level, 10) : 2,
@@ -1290,11 +1577,17 @@ app.post('/api/admin/employees', (req, res) => {
 
   employees.push(newEmp);
   writeJson(EMPLOYEES_FILE, employees);
-  res.json({ success: true, employee: newEmp });
+  res.json({ 
+    success: true, 
+    employee: { 
+      ...newEmp, 
+      password: assignedPass 
+    } 
+  });
 });
 
 // Update employee level
-app.patch('/api/admin/employees/:id/level', (req, res) => {
+app.patch('/api/admin/employees/:id/level', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { level } = req.body;
 
@@ -1316,12 +1609,15 @@ app.patch('/api/admin/employees/:id/level', (req, res) => {
   res.json({
     success: true,
     message: `רמת העובד עודכנה בהצלחה לרמה ${parsedLevel}`,
-    employee: employees[empIndex]
+    employee: {
+      ...employees[empIndex],
+      password: decryptPassword(employees[empIndex].password)
+    }
   });
 });
 
 // Update full employee details
-app.put('/api/admin/employees/:id', (req, res) => {
+app.put('/api/admin/employees/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { name, username, password, department, role, level, isAdmin } = req.body;
 
@@ -1340,7 +1636,7 @@ app.put('/api/admin/employees/:id', (req, res) => {
     employees[empIndex].username = String(username).trim();
   }
   if (password !== undefined && String(password).trim() !== '') {
-    employees[empIndex].password = String(password).trim();
+    employees[empIndex].password = encryptPassword(String(password).trim());
   }
   if (department !== undefined) employees[empIndex].department = department;
   if (role !== undefined) employees[empIndex].role = role;
@@ -1352,12 +1648,15 @@ app.put('/api/admin/employees/:id', (req, res) => {
   res.json({
     success: true,
     message: 'פרטי העובד עודכנו בהצלחה',
-    employee: employees[empIndex]
+    employee: {
+      ...employees[empIndex],
+      password: decryptPassword(employees[empIndex].password)
+    }
   });
 });
 
 // Update employee exam schedule (4-month tracking target date & notes)
-app.patch('/api/admin/employees/:id/schedule', (req, res) => {
+app.patch('/api/admin/employees/:id/schedule', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { nextExamDate, scheduleNotes } = req.body;
 
@@ -1380,12 +1679,15 @@ app.patch('/api/admin/employees/:id/schedule', (req, res) => {
   res.json({
     success: true,
     message: 'מועד המבחן עודכן בהצלחה',
-    employee: employees[empIndex]
+    employee: {
+      ...employees[empIndex],
+      password: decryptPassword(employees[empIndex].password)
+    }
   });
 });
 
 // Auto-schedule next 4-month exam date for employees
-app.post('/api/admin/employees/auto-schedule', (req, res) => {
+app.post('/api/admin/employees/auto-schedule', requireAdmin, (req, res) => {
   const { employeeIds } = req.body || {};
   const employees = readJson(EMPLOYEES_FILE, []);
   const results = readJson(RESULTS_FILE, []);
@@ -1437,17 +1739,20 @@ app.post('/api/admin/employees/auto-schedule', (req, res) => {
   res.json({
     success: true,
     message: `תוזמנו מועדי מבחן עבור ${updatedCount} עובדים`,
-    employees
+    employees: employees.map(emp => ({
+      ...emp,
+      password: decryptPassword(emp.password)
+    }))
   });
 });
 
 // Delete Employee by ID
-app.delete('/api/admin/employees/:id', (req, res) => {
+app.delete('/api/admin/employees/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const cleanId = String(id).trim();
 
-  // Prevent accidental deletion of primary System Administrator (9999)
-  if (cleanId === '9999') {
+  // Prevent accidental deletion of primary System Administrator (9999 or admin)
+  if (cleanId === '9999' || cleanId === 'admin') {
     return res.status(403).json({ success: false, message: 'לא ניתן למחוק את מנהל המערכת הראשי (Admin)' });
   }
 

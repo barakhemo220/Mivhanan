@@ -221,11 +221,20 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
     }
 
     // 2. Upload to backend for permanent archive
+    let token = null;
+    try {
+      const savedUser = sessionStorage.getItem('mivhanan_user');
+      token = savedUser ? JSON.parse(savedUser)?.token : null;
+    } catch {}
+
     if (uploadToServer && id) {
       try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         await fetch(`/api/results/${id}/pdf`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ pdfBase64 })
         });
       } catch (uploadErr) {
@@ -242,7 +251,13 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
     console.error('Error in generateAndSaveExamPdf:', error);
     // If client generation fails, fallback to server printable view
     if (id && autoDownload) {
-      window.open(`/api/results/${id}/report?print=1`, '_blank');
+      let token = null;
+      try {
+        const savedUser = sessionStorage.getItem('mivhanan_user');
+        token = savedUser ? JSON.parse(savedUser)?.token : null;
+      } catch {}
+      const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+      window.open(`/api/results/${id}/report?print=1${tokenParam}`, '_blank');
     }
     return { success: false, error: error.message };
   } finally {

@@ -32,7 +32,14 @@ export default function SavedExamModal({ result, onClose }) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/results/${result.id}`);
+        let token = null;
+        try {
+          const saved = sessionStorage.getItem('mivhanan_user');
+          token = saved ? JSON.parse(saved)?.token : null;
+        } catch {}
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const res = await fetch(`/api/results/${result.id}`, { headers });
         const data = await res.json();
         if (!res.ok || !data.success) {
           throw new Error(data.message || 'שגיאה בטעינת נתוני המבחן השמור');
@@ -71,7 +78,13 @@ export default function SavedExamModal({ result, onClose }) {
     } catch (err) {
       console.error('PDF generation error:', err);
       // Fallback
-      window.open(`/api/results/${examData.id}/pdf`, '_blank');
+      let token = null;
+      try {
+        const saved = sessionStorage.getItem('mivhanan_user');
+        token = saved ? JSON.parse(saved)?.token : null;
+      } catch {}
+      const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+      window.open(`/api/results/${examData.id}/pdf${tokenParam}`, '_blank');
     } finally {
       setIsExportingPdf(false);
     }
@@ -79,7 +92,13 @@ export default function SavedExamModal({ result, onClose }) {
 
   const handleOpenPrintable = () => {
     if (!examData?.id) return;
-    window.open(`/api/results/${examData.id}/report?print=1`, '_blank');
+    let token = null;
+    try {
+      const saved = sessionStorage.getItem('mivhanan_user');
+      token = saved ? JSON.parse(saved)?.token : null;
+    } catch {}
+    const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+    window.open(`/api/results/${examData.id}/report?print=1${tokenParam}`, '_blank');
   };
 
   if (!result) return null;

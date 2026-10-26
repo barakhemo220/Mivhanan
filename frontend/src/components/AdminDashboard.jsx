@@ -37,7 +37,7 @@ import {
 import ImageModal from './ImageModal';
 import SavedExamModal from './SavedExamModal';
 
-export default function AdminDashboard({ onBackToExam }) {
+export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   const [activeTab, setActiveTab] = useState('results'); // results, questions, employees
   const [results, setResults] = useState([]);
   const [questions, setQuestions] = useState([]);
@@ -47,6 +47,35 @@ export default function AdminDashboard({ onBackToExam }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [lightboxImage, setLightboxImage] = useState(null);
   const [selectedSavedExam, setSelectedSavedExam] = useState(null);
+
+  // Auth Helpers for protected Admin API calls
+  const getAuthToken = () => {
+    if (user?.token) return user.token;
+    try {
+      const saved = sessionStorage.getItem('mivhanan_user');
+      return saved ? JSON.parse(saved)?.token : '';
+    } catch {
+      return '';
+    }
+  };
+
+  const getAuthHeaders = () => {
+    const token = getAuthToken();
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  };
+
+  const authFetch = async (url, options = {}) => {
+    const headers = {
+      ...getAuthHeaders(),
+      ...(options.headers || {})
+    };
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401 || res.status === 403) {
+      showToast('פג תוקף ההתחברות או שההרשאה אינה תקפה', 'error');
+      if (onLogout) onLogout();
+    }
+    return res;
+  };
 
   // Question level filter state (all, 1, 2, 3)
   const [questionLevelFilter, setQuestionLevelFilter] = useState('all');
@@ -126,7 +155,7 @@ export default function AdminDashboard({ onBackToExam }) {
     formData.append('backupZip', file);
 
     try {
-      const res = await fetch('/api/admin/restore-zip', {
+      const res = await authFetch('/api/admin/restore-zip', {
         method: 'POST',
         body: formData
       });
@@ -153,9 +182,9 @@ export default function AdminDashboard({ onBackToExam }) {
     setLoading(true);
     try {
       const [resResults, resQuestions, resEmployees] = await Promise.all([
-        fetch('/api/admin/results').then(r => r.json()),
-        fetch('/api/admin/questions').then(r => r.json()),
-        fetch('/api/admin/employees').then(r => r.json())
+        authFetch('/api/admin/results').then(r => r.json()),
+        authFetch('/api/admin/questions').then(r => r.json()),
+        authFetch('/api/admin/employees').then(r => r.json())
       ]);
 
       if (resResults.success) setResults(resResults.results);
@@ -169,7 +198,7 @@ export default function AdminDashboard({ onBackToExam }) {
   };
 
   const handleExportCsv = () => {
-    window.location.href = '/api/admin/export-csv';
+    window.location.href = `/api/admin/export-csv?token=${encodeURIComponent(getAuthToken())}`;
   };
 
   // Smart client-side Image Auto-Resize & Format Optimization
@@ -293,7 +322,7 @@ export default function AdminDashboard({ onBackToExam }) {
       confirmVariant: 'danger',
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/admin/questions/${id}`, {
+          const res = await authFetch(`/api/admin/questions/${id}`, {
             method: 'DELETE'
           });
           const data = await res.json();
@@ -328,7 +357,7 @@ export default function AdminDashboard({ onBackToExam }) {
         const formData = new FormData();
         formData.append('image', selectedImageFile);
 
-        const uploadRes = await fetch('/api/admin/upload-image', {
+        const uploadRes = await authFetch('/api/admin/upload-image', {
           method: 'POST',
           body: formData
         });
@@ -342,7 +371,7 @@ export default function AdminDashboard({ onBackToExam }) {
       }
 
       // Create Question with optimized image and level
-      const res = await fetch('/api/admin/questions', {
+      const res = await authFetch('/api/admin/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -384,7 +413,7 @@ export default function AdminDashboard({ onBackToExam }) {
     }
 
     try {
-      const res = await fetch('/api/admin/employees', {
+      const res = await authFetch('/api/admin/employees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -434,7 +463,7 @@ export default function AdminDashboard({ onBackToExam }) {
   const handleUpdateEmployeeLevel = async (empId, newLevel) => {
     setUpdatingEmpId(empId);
     try {
-      const res = await fetch(`/api/admin/employees/${empId}/level`, {
+      const res = await authFetch(`/api/admin/employees/${empId}/level`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ level: newLevel })
@@ -487,7 +516,7 @@ export default function AdminDashboard({ onBackToExam }) {
       confirmVariant: 'danger',
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/admin/results/${resultId}`, {
+          const res = await authFetch(`/api/admin/results/${resultId}`, {
             method: 'DELETE'
           });
           const data = await res.json();
@@ -521,7 +550,7 @@ export default function AdminDashboard({ onBackToExam }) {
       confirmVariant: 'danger',
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/admin/employees/${empId}`, {
+          const res = await authFetch(`/api/admin/employees/${empId}`, {
             method: 'DELETE'
           });
           const data = await res.json();
@@ -680,7 +709,7 @@ export default function AdminDashboard({ onBackToExam }) {
     setIsSavingSchedule(true);
 
     try {
-      const res = await fetch(`/api/admin/employees/${schedulingEmp.id}/schedule`, {
+      const res = await authFetch(`/api/admin/employees/${schedulingEmp.id}/schedule`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -720,7 +749,7 @@ export default function AdminDashboard({ onBackToExam }) {
       onConfirm: async () => {
         setIsSavingSchedule(true);
         try {
-          const res = await fetch(`/api/admin/employees/${schedulingEmp.id}/schedule`, {
+          const res = await authFetch(`/api/admin/employees/${schedulingEmp.id}/schedule`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -760,7 +789,7 @@ export default function AdminDashboard({ onBackToExam }) {
       onConfirm: async () => {
         setIsAutoScheduling(true);
         try {
-          const res = await fetch('/api/admin/employees/auto-schedule', {
+          const res = await authFetch('/api/admin/employees/auto-schedule', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
@@ -783,7 +812,7 @@ export default function AdminDashboard({ onBackToExam }) {
   };
 
   const handleExportScheduleCsv = () => {
-    window.location.href = '/api/admin/export-schedules-csv';
+    window.location.href = `/api/admin/export-schedules-csv?token=${encodeURIComponent(getAuthToken())}`;
   };
 
   // KPIs
@@ -822,7 +851,7 @@ export default function AdminDashboard({ onBackToExam }) {
 
         <div className="admin-header-actions">
           <a
-            href="/api/admin/backup-zip"
+            href={`/api/admin/backup-zip?token=${encodeURIComponent(getAuthToken())}`}
             download
             className="btn btn-secondary"
             title="הורדת קובץ גיבוי ZIP מלא של כל המערכת (כולל JSON וכל קובצי ה-PDF)"
@@ -1083,7 +1112,7 @@ export default function AdminDashboard({ onBackToExam }) {
                             </button>
 
                             <a
-                              href={`/api/results/${r.id}/pdf`}
+                              href={`/api/results/${r.id}/pdf?token=${encodeURIComponent(getAuthToken())}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="btn-table-pdf"
@@ -1547,7 +1576,7 @@ export default function AdminDashboard({ onBackToExam }) {
               </div>
               <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <a 
-                  href="/api/admin/export-credentials-csv" 
+                  href={`/api/admin/export-credentials-csv?token=${encodeURIComponent(getAuthToken())}`} 
                   download="mivhanan_credentials.csv"
                   className="btn btn-secondary btn-sm"
                   title="הורדת קובץ אקסל עם שמות המשתמש והסיסמאות של כל העובדים לצורך חלוקה"

@@ -130,11 +130,11 @@ async function runAnonymization() {
     await mongoose.disconnect();
   }
 
-  console.log('\n--- Sample of Anonymized Employees & Strong Passwords ---');
+  console.log('\n--- Sample of Anonymized Employees ---');
   updatedEmployees.slice(0, 10).forEach(e => {
-    console.log(`${e.id} | ${e.name.padEnd(12)} | Username: ${e.username.padEnd(12)} | Password: ${e.password}`);
+    console.log(`${e.id} | ${e.name.padEnd(12)} | Username: ${e.username.padEnd(12)} | Password: [PROTECTED]`);
   });
-  console.log('admin  | מנהל מערכת   | Username: מנהל מערכת   | Password: ' + (process.env.ADMIN_PASSWORD || 'Hanan4343!'));
+  console.log('admin  | מנהל מערכת   | Username: מנהל מערכת   | Password: [PROTECTED]');
   console.log('\n🔒 Privacy Anonymization Completed Successfully!');
 }
 

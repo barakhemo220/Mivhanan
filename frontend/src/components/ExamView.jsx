@@ -59,7 +59,10 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
 
     try {
       const userLevel = user?.level || 2;
-      const res = await fetch(`/api/exam/questions?count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`);
+      const authHeaders = user?.token ? { 'Authorization': `Bearer ${user.token}` } : {};
+      const res = await fetch(`/api/exam/questions?count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
+        headers: authHeaders
+      });
       const data = await res.json();
 
       if (!res.ok || !data.success) {
@@ -155,7 +158,10 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     try {
       const res = await fetch('/api/exam/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(user?.token ? { 'Authorization': `Bearer ${user.token}` } : {})
+        },
         body: JSON.stringify({
           employeeId: user.id,
           employeeName: user.name,

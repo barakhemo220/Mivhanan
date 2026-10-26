@@ -41,7 +41,10 @@ export default function LoginView({ onLoginSuccess }) {
         throw new Error(data.message || 'שם משתמש או סיסמה שגויים');
       }
 
-      onLoginSuccess(data.employee);
+      onLoginSuccess({
+        ...data.employee,
+        token: data.token
+      });
     } catch (err) {
       setError(err.message || 'שגיאה בהתחברות לשרת');
     } finally {

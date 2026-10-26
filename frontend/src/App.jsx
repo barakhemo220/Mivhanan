@@ -124,7 +124,9 @@ export default function App() {
 
         {currentView === 'admin' && user?.isAdmin && (
           <AdminDashboard
+            user={user}
             onBackToExam={() => setCurrentView('exam')}
+            onLogout={handleLogout}
           />
         )}
       </main>
