@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#ef4444" stroke-width="1.2" />
+  <text x="210" y="36" fill="#f87171" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">רמות בטיחות תהליכית: SIL 2 מול SIL 3 וארכיטקטורת הצבעה (Voting)</text>
+
+  <!-- Left: SIF Loop (Sensors -> Safety PLC -> Final Element ESDV) -->
+  <g transform="translate(35, 65)">
+    <rect x="0" y="0" width="330" height="245" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
+    <text x="165" y="24" fill="#fbbf24" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">מבנה לולאת בטיחות (Safety Instrumented Function - SIF)</text>
+    <line x1="10" y1="34" x2="320" y2="34" stroke="#334155" />
+
+    <!-- 1. Sensor Stage -->
+    <rect x="15" y="50" width="80" height="65" rx="6" fill="#0f172a" stroke="#38bdf8" />
+    <text x="55" y="75" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">חיישנים</text>
+    <text x="55" y="95" fill="#ffffff" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">PT/LT/TT</text>
+
+    <!-- Arrow -->
+    <line x1="95" y1="82" x2="120" y2="82" stroke="#f59e0b" stroke-width="2" />
+
+    <!-- 2. Logic Solver (Safety PLC) -->
+    <rect x="120" y="50" width="90" height="65" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="2" />
+    <text x="165" y="75" fill="#f87171" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">Safety PLC</text>
+    <text x="165" y="95" fill="#ffffff" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">Triconex / M580S</text>
+
+    <!-- Arrow -->
+    <line x1="210" y1="82" x2="235" y2="82" stroke="#f59e0b" stroke-width="2" />
+
+    <!-- 3. Final Element -->
+    <rect x="235" y="50" width="80" height="65" rx="6" fill="#0f172a" stroke="#22c55e" />
+    <text x="275" y="75" fill="#4ade80" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">שסתום ניתוק</text>
+    <text x="275" y="95" fill="#ffffff" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">ESDV + SOV</text>
+
+    <!-- PFD Formulas Table -->
+    <rect x="15" y="130" width="300" height="100" rx="4" fill="#0f172a" stroke="#475569" />
+    <text x="25" y="150" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold">רמת SIL 2:</text>
+    <text x="90" y="150" fill="#ffffff" font-family="Arial, sans-serif" font-size="10">PFD_avg: 10⁻² עד 10⁻³ (זמינות 99.0% - 99.9%)</text>
+    <text x="25" y="180" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold">רמת SIL 3:</text>
+    <text x="90" y="180" fill="#ffffff" font-family="Arial, sans-serif" font-size="10">PFD_avg: 10⁻³ עד 10⁻⁴ (זמינות 99.9% - 99.99%)</text>
+    <text x="25" y="212" fill="#facc15" font-family="Arial, sans-serif" font-size="9">רמת הפחתת סיכון (RRF) ב-SIL 3 גדולה פי 10 מ-SIL 2!</text>
+  </g>
+
+  <!-- Right: Voting Logic Architectures (1oo2 vs 2oo3) -->
+  <g transform="translate(385, 65)">
+    <rect x="0" y="0" width="340" height="245" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="170" y="24" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">השוואת לוגיקת הצבעה (Voting Architectures)</text>
+    <line x1="10" y1="34" x2="330" y2="34" stroke="#334155" />
+
+    <!-- 1oo2 -->
+    <rect x="15" y="45" width="310" height="55" rx="4" fill="#0f172a" stroke="#d97706" />
+    <text x="30" y="65" fill="#f59e0b" font-family="Arial, sans-serif" font-size="11" font-weight="bold">1oo2 (אחד משניים):</text>
+    <text x="30" y="85" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">בטיחות גבוהה מאוד (SIL 3), אך רגיש להשבתות שווא (Spurious Trip)</text>
+
+    <!-- 2oo3 -->
+    <rect x="15" y="110" width="310" height="60" rx="4" fill="#0f172a" stroke="#22c55e" />
+    <text x="30" y="130" fill="#4ade80" font-family="Arial, sans-serif" font-size="11" font-weight="bold">2oo3 (שניים משלושה - TMR):</text>
+    <text x="30" y="150" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">השילוב המושלם: בטיחות SIL 3 מרבית יחד עם זמינות תהליך מקסימלית</text>
+
+    <!-- Proof Test Interval -->
+    <rect x="15" y="180" width="310" height="50" rx="4" fill="#0f172a" stroke="#3b82f6" />
+    <text x="30" y="200" fill="#60a5fa" font-family="Arial, sans-serif" font-size="10" font-weight="bold">בדיקת הוכחה תקופתית (Proof Test):</text>
+    <text x="30" y="218" fill="#93c5fd" font-family="Arial, sans-serif" font-size="9">בדיקה ידנית שנתית לגילוי תקלות נסתרות (Dangerous Undetected)</text>
+  </g>
+
+  <!-- Bottom Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="720" y="347" fill="#f87171" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">תקני IEC 61508 / IEC 61511:</text>
+  <text x="720" y="367" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11" text-anchor="end">שרשרת הבטיחות חזקה רק כמו החוליה החלשה שבה. רוב הכשלים ב-SIF (מעל 50%) מתרחשים בשסתום הניתוק הסופי (ESDV), ולכן נדרש בו מבחן תנועה חלקי (Partial Stroke Testing).</text>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#4f46e5" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">השוואת תצורות חיווט RTD: שניים, שלושה וארבעה חוטים</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(30, 65)">
+          <!-- 2-Wire -->
+          <rect x="0" y="0" width="200" height="240" rx="8" fill="#fff1f2" stroke="#f43f5e" stroke-width="1.5" />
+          <text x="100" y="24" fill="#be123c" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">2-Wire (ללא פיצוי)</text>
+          <path d="M 30 70 L 170 70 M 30 110 L 170 110" stroke="#ef4444" stroke-width="2.5" />
+          <rect x="75" y="80" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a" />
+          <text x="100" y="94" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">Pt100</text>
+          <text x="100" y="145" fill="#be123c" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">R_total = R_pt + 2·R_wire</text>
+          <text x="100" y="170" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">כל 0.385Ω בחוט</text>
+          <text x="100" y="185" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מוסיף 1°C שגיאה!</text>
+          <text x="100" y="215" fill="#be123c" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">אינו מומלץ למרחקים</text>
+        </g>
+
+        <g transform="translate(250, 65)">
+          <!-- 3-Wire -->
+          <rect x="0" y="0" width="200" height="240" rx="8" fill="#f8fafc" stroke="#4f46e5" stroke-width="1.5" />
+          <text x="100" y="24" fill="#4f46e5" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">3-Wire (התקן בתעשייה)</text>
+          <path d="M 30 65 L 170 65 M 30 95 L 170 95 M 30 125 L 170 125" stroke="#4f46e5" stroke-width="2.5" />
+          <rect x="75" y="75" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a" />
+          <text x="100" y="89" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">Pt100</text>
+          <text x="100" y="155" fill="#4f46e5" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">קיזוז גשר וויטסטון</text>
+          <text x="100" y="175" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">חוט 3 מבטל את R_wire</text>
+          <text x="100" y="190" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">בהנחה שכל 3 החוטים זהים</text>
+          <text x="100" y="215" fill="#059669" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">מתאים למרחקים ארוכים</text>
+        </g>
+
+        <g transform="translate(470, 65)">
+          <!-- 4-Wire -->
+          <rect x="0" y="0" width="200" height="240" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5" />
+          <text x="100" y="24" fill="#047857" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">4-Wire (מעבדתי / דיוק עליון)</text>
+          <path d="M 30 55 L 170 55 M 30 80 L 170 80 M 30 105 L 170 105 M 30 130 L 170 130" stroke="#10b981" stroke-width="2.5" />
+          <rect x="75" y="70" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a" />
+          <text x="100" y="84" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">Pt100</text>
+          <text x="100" y="155" fill="#047857" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">שיטת קלווין (4 גידים)</text>
+          <text x="100" y="175" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">2 חוטים להזרקת זרם קבוע</text>
+          <text x="100" y="190" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">2 חוטים למדידת מתח בנפרד</text>
+          <text x="100" y="215" fill="#047857" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">אפס שגיאת הולכה לחלוטין!</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">בתעשייה 3-Wire הינו הסטנדרט המקובל; בדיוק מעבדתי וכיול משתמשים ב-4-Wire לביטול מוחלט של שגיאת חוטים.</text>
+</svg>

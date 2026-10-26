@@ -1,0 +1,22 @@
+{
+  "name": "mivhanan-app",
+  "version": "2.4.0",
+  "description": "Mivhanan - Periodic Examination Platform in Instrumentation & Control",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install",
+    "start": "node backend/server.js",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
+  "keywords": [
+    "instrumentation",
+    "control",
+    "industrial-exams",
+    "isa-5.1",
+    "atex",
+    "sil"
+  ],
+  "author": "Mivhanan Team",
+  "license": "UNLICENSED"
+}

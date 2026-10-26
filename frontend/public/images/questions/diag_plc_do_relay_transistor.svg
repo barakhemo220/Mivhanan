@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#7c3aed" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">כרטיסי מוצא דיגיטלי (DO): מוצא ממסר (Relay) מול מוצא טרנזיסטור (Solid State)</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(50, 65)">
+          <rect x="0" y="0" width="280" height="240" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="140" y="25" fill="#7c3aed" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מוצא ממסר מכני (Relay Output)</text>
+
+          <rect x="25" y="50" width="80" height="80" rx="4" fill="#ffffff" stroke="#7c3aed" />
+          <path d="M 45 75 L 75 60 M 45 105 L 85 105" stroke="#ef4444" stroke-width="2.5" />
+          <text x="65" y="120" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מגע יבש</text>
+
+          <text x="125" y="70" fill="#059669" font-family="Arial, sans-serif" font-size="10" font-weight="bold">יתרונות:</text>
+          <text x="125" y="88" fill="#334155" font-family="Arial, sans-serif" font-size="9">• מיתוג גם AC וגם DC (עד 230V)</text>
+          <text x="125" y="104" fill="#334155" font-family="Arial, sans-serif" font-size="9">• זרם גבוה (2A עד 5A)</text>
+          <text x="125" y="120" fill="#334155" font-family="Arial, sans-serif" font-size="9">• בידוד גלווני מוחלט</text>
+
+          <rect x="20" y="150" width="240" height="75" rx="5" fill="#fff1f2" />
+          <text x="140" y="172" fill="#be123c" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">חסרונות ואחזקה:</text>
+          <text x="140" y="190" fill="#be123c" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">• בלאי מכני (מחזור חיים מוגבל)</text>
+          <text x="140" y="205" fill="#be123c" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">• מהירות מיתוג איטית (לא מתאים ל-PWM)</text>
+        </g>
+
+        <g transform="translate(360, 65)">
+          <rect x="0" y="0" width="290" height="240" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="145" y="25" fill="#059669" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מוצא טרנזיסטור (Transistor Solid-State)</text>
+
+          <rect x="25" y="50" width="80" height="80" rx="4" fill="#ffffff" stroke="#059669" />
+          <circle cx="65" cy="90" r="24" fill="#ecfdf5" stroke="#059669" />
+          <text x="65" y="94" fill="#047857" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">MOSFET</text>
+
+          <text x="125" y="70" fill="#059669" font-family="Arial, sans-serif" font-size="10" font-weight="bold">יתרונות:</text>
+          <text x="125" y="88" fill="#334155" font-family="Arial, sans-serif" font-size="9">• אפס בלאי מכני (אינסוף מיתוגים)</text>
+          <text x="125" y="104" fill="#334155" font-family="Arial, sans-serif" font-size="9">• מהירות מיתוג עצומה (kHz)</text>
+          <text x="125" y="120" fill="#334155" font-family="Arial, sans-serif" font-size="9">• מתאים לבקרת מנועי צעד ו-PWM</text>
+
+          <rect x="20" y="150" width="250" height="75" rx="5" fill="#e0f2fe" />
+          <text x="145" y="172" fill="#0369a1" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">מגבלות:</text>
+          <text x="145" y="190" fill="#0369a1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">• מיתוג מתח DC בלבד (בד"כ 24VDC)</text>
+          <text x="145" y="205" fill="#0369a1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">• זרם נמוך (0.5A לערוץ, רגיש לקצרים)</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">כרטיס ממסר מתאים למתחי AC וזרמים גבוהים; כרטיס טרנזיסטור מתאים לתדרי מיתוג מהירים ללא בלאי</text>
+</svg>

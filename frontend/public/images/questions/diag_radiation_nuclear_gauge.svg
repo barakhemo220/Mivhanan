@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#eab308" stroke-width="1.2" />
+  <text x="210" y="36" fill="#facc15" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מכשור רדיומטרי (קרינה מייננת): מדידת מפלס, מונה גייגר ו-ALARA</text>
+
+  <!-- Tank with Source Holder and Scintillation Detector -->
+  <g transform="translate(60, 65)">
+    <!-- Source Housing (Left of Tank) -->
+    <rect x="20" y="80" width="85" height="95" rx="8" fill="#1e293b" stroke="#eab308" stroke-width="2" />
+    <!-- Radiation Symbol -->
+    <circle cx="62" cy="115" r="14" fill="#facc15" />
+    <circle cx="62" cy="115" r="5" fill="#0f172a" />
+    <text x="62" y="145" fill="#facc15" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">מקור Cs-137</text>
+    <text x="62" y="162" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">תריס Shutter מוגן עופרת</text>
+
+    <!-- Thick Wall Process Vessel (Center) -->
+    <rect x="155" y="40" width="130" height="180" rx="10" fill="#1e293b" stroke="#64748b" stroke-width="3" />
+    <!-- Material / Slurry inside Tank -->
+    <rect x="158" y="115" width="124" height="102" rx="6" fill="#475569" opacity="0.8" />
+    <text x="220" y="165" fill="#ffffff" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">בוצה / חומר בולע</text>
+
+    <!-- Gamma Radiation Beam -->
+    <path d="M 105,120 L 155,120" stroke="#facc15" stroke-width="4" stroke-dasharray="4,2" />
+    <path d="M 155,120 L 285,120" stroke="#facc15" stroke-width="2" stroke-opacity="0.3" stroke-dasharray="3,3" />
+    <path d="M 285,120 L 335,120" stroke="#facc15" stroke-width="2" stroke-opacity="0.4" stroke-dasharray="2,2" />
+
+    <!-- Scintillation Detector (Right of Tank) -->
+    <rect x="335" y="80" width="95" height="95" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2" />
+    <text x="382" y="105" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">גלאי נצנוץ</text>
+    <text x="382" y="125" fill="#ffffff" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">Scintillator + PMT</text>
+    <text x="382" y="145" fill="#94a3b8" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">ספירות לשנייה (CPS)</text>
+    <text x="382" y="162" fill="#4ade80" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">מוצא 4-20mA / HART</text>
+  </g>
+
+  <!-- Right: Radiation Safety & ALARA Box -->
+  <g transform="translate(505, 65)">
+    <rect x="0" y="0" width="225" height="245" rx="8" fill="#1e293b" stroke="#475569" />
+    <text x="112" y="24" fill="#facc15" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">בטיחות קרינה ועקרון ALARA</text>
+    <line x1="10" y1="34" x2="215" y2="34" stroke="#334155" />
+
+    <text x="12" y="55" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold">3 עמודי התווך של הגנה:</text>
+    <text x="12" y="73" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">1. זמן (Time) - צמצום משך השהייה</text>
+    <text x="12" y="90" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">2. מרחק (Distance) - דעיכה לפי 1/r²</text>
+    <text x="12" y="107" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">3. מיגון (Shielding) - עופרת ופלדה</text>
+
+    <text x="12" y="132" fill="#f59e0b" font-family="Arial, sans-serif" font-size="10" font-weight="bold">מכשירי ניטור ובדיקה:</text>
+    <text x="12" y="150" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• מונה גייגר: בדיקת עוצמת מנה ודליפות</text>
+    <text x="12" y="167" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• יחידות: µSv/h או mSv/h</text>
+    <text x="12" y="184" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• תג קרינה (TLD): ניטור אישי מצטבר</text>
+
+    <text x="12" y="210" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold">חשיפה מותרת:</text>
+    <text x="12" y="228" fill="#f87171" font-family="Arial, sans-serif" font-size="9">עובד קרינה: עד 20mSv בשנה | ציבור: 1mSv</text>
+  </g>
+
+  <!-- Bottom Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="720" y="347" fill="#facc15" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">נוהל עבודה בטוחה במכשור קרינה:</text>
+  <text x="720" y="367" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11" text-anchor="end">לפני כל כניסה למכל או עבודה ליד הקורה, חובה לסגור ולנעול את תריס המקור (Shutter Lockout) ולוודא בעזרת מונה גייגר כי עוצמת הקרינה ברקע בטוחה.</text>
+</svg>

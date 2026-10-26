@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#ef4444" stroke-width="1.2" />
+  <text x="210" y="36" fill="#f87171" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">בדיקת תקינות מתמרי משקל (Load Cell): התנגדות, אפס ובידוד</text>
+
+  <!-- Diagnostic Steps 1, 2, 3 Table -->
+  <g transform="translate(35, 65)">
+    <!-- Header -->
+    <rect x="0" y="0" width="690" height="32" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2" />
+    <text x="80" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">סוג הבדיקה</text>
+    <text x="230" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">כיצד בודקים? (מכשיר ונקודות)</text>
+    <text x="440" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">ערכים תקינים (מפרט יצרן)</text>
+    <text x="610" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">משמעות תקלה / חריגה</text>
+
+    <!-- Test 1: התנגדות מבוא ומוצא -->
+    <rect x="0" y="36" width="690" height="50" rx="3" fill="#1e293b" />
+    <text x="80" y="65" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">1. התנגדות הגשר</text>
+    <text x="230" y="58" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מולטימטר Fluke באוהמים (Ω)</text>
+    <text x="230" y="74" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">בין EXC+ ל-EXC- ובין SIG+ ל-SIG-</text>
+    <text x="440" y="58" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">350Ω ±2Ω או 700Ω ±5Ω</text>
+    <text x="440" y="74" fill="#86efac" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">קריאת המבוא גדולה במעט מהמוצא</text>
+    <text x="610" y="65" fill="#ef4444" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">נתק (OL) או קצר בגשר</text>
+
+    <!-- Test 2: בדיקת אפס (Zero Balance) -->
+    <rect x="0" y="90" width="690" height="50" rx="3" fill="#0f172a" />
+    <text x="80" y="119" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">2. איזון אפס (Zero)</text>
+    <text x="230" y="112" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מתמר מוזן ב-10V DC ללא עומס</text>
+    <text x="230" y="128" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מדידת מיליוולט (mV) בין SIG+ ל-SIG-</text>
+    <text x="440" y="112" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">קרוב ל-0 mV (עד ±0.1% FS)</text>
+    <text x="440" y="128" fill="#86efac" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">עבור מתמר 2mV/V: פחות מ-0.02mV</text>
+    <text x="610" y="119" fill="#ef4444" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">מעל 0.1mV ⇐ עיוות פלסטי מעומס יתר!</text>
+
+    <!-- Test 3: בדיקת בידוד במגר (Insulation Resistance) -->
+    <rect x="0" y="144" width="690" height="50" rx="3" fill="#1e293b" />
+    <text x="80" y="173" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">3. בידוד לאדמה</text>
+    <text x="230" y="166" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מגר (Megohmmeter) ב-50V DC בלבד!</text>
+    <text x="230" y="182" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">בין הגידים לגוף המתמר והסיכוך</text>
+    <text x="440" y="173" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">&gt; 5,000 MΩ (מגה-אוהם)</text>
+    <text x="610" y="166" fill="#ef4444" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">חדירת רטיבות/קורוזיה לגוף המתמר</text>
+    <text x="610" y="182" fill="#fca5a5" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">גורם לסחיפת משקל (Drift) בלתי מוסברת</text>
+
+    <!-- Test 4: Corner Trimming (Junction Box) -->
+    <rect x="0" y="198" width="690" height="45" rx="3" fill="#0f172a" />
+    <text x="80" y="225" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">4. איזון פינות</text>
+    <text x="230" y="225" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">הנחת משקולת בדיקה על 4 הפינות</text>
+    <text x="440" y="225" fill="#22c55e" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">קריאה זהה בכל הפינות (הפרש &lt;0.05%)</text>
+    <text x="610" y="225" fill="#f59e0b" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">כיוונון פוטנציומטר ב-Junction Box</text>
+  </g>
+
+  <!-- Bottom Warning Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#ef4444" stroke-width="1.2" />
+  <text x="720" y="347" fill="#ef4444" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">אזהרת בדיקה קריטית:</text>
+  <text x="720" y="367" fill="#fca5a5" font-family="Arial, sans-serif" font-size="10" text-anchor="end">בבדיקת בידוד במגר למתמר משקל, יש להשתמש במתח בדיקה של 50V DC בלבד! בדיקה ב-500V או 1000V תשרוף באופן בלתי הפיך את מבדדי ה-Strain Gauges ותהרוס את המתמר.</text>
+</svg>

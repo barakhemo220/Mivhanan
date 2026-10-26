@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#d97706" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">כרטיסי מבוא דיגיטלי בבקר (DI): חיבור חיישני PNP מול NPN (Sink / Source)</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(40, 65)">
+          <!-- PNP (Sourcing sensor -> Sinking input) -->
+          <rect x="0" y="0" width="285" height="240" rx="8" fill="#f8fafc" stroke="#d97706" stroke-width="1.5" />
+          <text x="142" y="24" fill="#d97706" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">חיישן PNP (הסטנדרט המערבי באירופה/ישראל)</text>
+
+          <rect x="15" y="50" width="95" height="80" rx="4" fill="#ffffff" stroke="#64748b" />
+          <text x="62" y="80" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">חיישן PNP</text>
+          <text x="62" y="98" fill="#d97706" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(מוציא +24V)</text>
+
+          <!-- PLC Input Sinking -->
+          <rect x="175" y="50" width="95" height="80" rx="4" fill="#ffffff" stroke="#d97706" />
+          <text x="222" y="80" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">כניסת PLC</text>
+          <text x="222" y="98" fill="#475569" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(Sinking - מחובר ל-0V)</text>
+
+          <!-- Signal line -->
+          <path d="M 110 80 L 175 80" stroke="#ef4444" stroke-width="3" />
+          <text x="142" y="72" fill="#ef4444" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">+24V Signal</text>
+
+          <rect x="15" y="150" width="255" height="75" rx="5" fill="#fef3c7" />
+          <text x="142" y="172" fill="#92400e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">הסבר בטיחותי קריטי:</text>
+          <text x="142" y="190" fill="#92400e" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">אם כבל האות של PNP נפצע ונוגע בגוף מוארק (0V),</text>
+          <text x="142" y="205" fill="#92400e" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">הכניסה נשארת ב-0V ולא תופעל פקודת שווא בטעות!</text>
+        </g>
+
+        <!-- NPN -->
+        <g transform="translate(365, 65)">
+          <rect x="0" y="0" width="295" height="240" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+          <text x="147" y="24" fill="#0284c7" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">חיישן NPN (נפוץ במכונות מיפן ואסיה)</text>
+
+          <rect x="15" y="50" width="95" height="80" rx="4" fill="#ffffff" stroke="#64748b" />
+          <text x="62" y="80" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">חיישן NPN</text>
+          <text x="62" y="98" fill="#0284c7" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(מושך ל-0V/GND)</text>
+
+          <!-- PLC Input Sourcing -->
+          <rect x="175" y="50" width="95" height="80" rx="4" fill="#ffffff" stroke="#0284c7" />
+          <text x="222" y="80" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">כניסת PLC</text>
+          <text x="222" y="98" fill="#475569" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(Sourcing - מחובר ל-24V+)</text>
+
+          <path d="M 110 80 L 175 80" stroke="#0f172a" stroke-width="3" />
+          <text x="142" y="72" fill="#0f172a" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">GND / 0V Signal</text>
+
+          <rect x="15" y="150" width="265" height="75" rx="5" fill="#e0f2fe" />
+          <text x="147" y="172" fill="#0369a1" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">הסבר פעולה:</text>
+          <text x="147" y="190" fill="#0369a1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">החיישן 'שואב' זרם ומחבר את הקו לאדמה (Sink).</text>
+          <text x="147" y="205" fill="#0369a1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">דורש כרטיס בקר שפולט מתח (Sourcing Input).</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">חיישן PNP מוציא 24V+ להפעלת כניסה Sinking; חיישן NPN מושך ל-0V להפעלת כניסה Sourcing</text>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="380" height="32" rx="6" fill="#1e293b" stroke="#06b6d4" stroke-width="1.2" />
+  <text x="215" y="36" fill="#22d3ee" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מצלמות IP, הזנת PoE ובדיקת כבילה (T568B / Fluke)</text>
+
+  <!-- Left: IP Camera & PoE Switch -->
+  <g transform="translate(30, 65)">
+    <!-- PoE Switch -->
+    <rect x="10" y="20" width="160" height="70" rx="6" fill="#1e293b" stroke="#0ea5e9" stroke-width="2" />
+    <text x="90" y="45" fill="#38bdf8" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">PoE+ Switch (802.3at)</text>
+    <text x="90" y="65" fill="#94a3b8" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">48-54V DC | 30W Max</text>
+    <!-- RJ45 Port on Switch -->
+    <rect x="145" y="70" width="18" height="15" fill="#0f172a" stroke="#22c55e" stroke-width="1.5" />
+
+    <!-- Cat6 Cable (Blue Path) -->
+    <path d="M 163,77 C 230,77 240,77 300,77" fill="none" stroke="#2563eb" stroke-width="6" />
+    <text x="230" y="65" fill="#60a5fa" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">כבל רשת Cat6 (עד 100 מטר)</text>
+
+    <!-- IP Camera -->
+    <g transform="translate(305, 30)">
+      <rect x="0" y="20" width="100" height="50" rx="8" fill="#1e293b" stroke="#22d3ee" stroke-width="2" />
+      <circle cx="85" cy="45" r="14" fill="#0f172a" stroke="#22d3ee" stroke-width="2" />
+      <circle cx="85" cy="45" r="6" fill="#06b6d4" />
+      <text x="45" y="49" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">IP Camera</text>
+      <!-- Subtitle -->
+      <text x="50" y="88" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">ONVIF / RTSP: 554</text>
+    </g>
+  </g>
+
+  <!-- Right: T568B Color Code & Cable Tester -->
+  <g transform="translate(470, 65)">
+    <rect x="0" y="0" width="265" height="245" rx="8" fill="#1e293b" stroke="#475569" />
+    <text x="132" y="24" fill="#22d3ee" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">סדר גידים תקני T-568B</text>
+    <line x1="10" y1="34" x2="255" y2="34" stroke="#334155" />
+
+    <!-- 8 Wires -->
+    <g transform="translate(15, 45)">
+      <!-- 1 White-Orange -->
+      <rect x="0" y="0" width="18" height="14" rx="2" fill="#fed7aa" stroke="#ea580c" />
+      <text x="25" y="11" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">1. לבן-כתום (TX+)</text>
+
+      <!-- 2 Orange -->
+      <rect x="0" y="20" width="18" height="14" rx="2" fill="#ea580c" />
+      <text x="25" y="31" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">2. כתום (TX-)</text>
+
+      <!-- 3 White-Green -->
+      <rect x="0" y="40" width="18" height="14" rx="2" fill="#bbf7d0" stroke="#16a34a" />
+      <text x="25" y="51" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">3. לבן-ירוק (RX+)</text>
+
+      <!-- 4 Blue -->
+      <rect x="0" y="60" width="18" height="14" rx="2" fill="#2563eb" />
+      <text x="25" y="71" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">4. כחול (PoE+)</text>
+
+      <!-- 5 White-Blue -->
+      <rect x="0" y="80" width="18" height="14" rx="2" fill="#bfdbfe" stroke="#2563eb" />
+      <text x="25" y="91" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">5. לבן-כחול (PoE+)</text>
+
+      <!-- 6 Green -->
+      <rect x="0" y="100" width="18" height="14" rx="2" fill="#16a34a" />
+      <text x="25" y="111" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">6. ירוק (RX-)</text>
+
+      <!-- 7 White-Brown -->
+      <rect x="0" y="120" width="18" height="14" rx="2" fill="#e7e5e4" stroke="#78716c" />
+      <text x="25" y="131" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">7. לבן-חום (PoE-)</text>
+
+      <!-- 8 Brown -->
+      <rect x="0" y="140" width="18" height="14" rx="2" fill="#78716c" />
+      <text x="25" y="151" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10">8. חום (PoE-)</text>
+
+      <rect x="0" y="165" width="235" height="26" rx="4" fill="#0f172a" stroke="#22c55e" stroke-width="1" />
+      <text x="117" y="182" fill="#4ade80" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">בדיקת טסטר רשת: נורות 1-8 דולקות בסדר רץ</text>
+    </g>
+  </g>
+
+  <!-- Bottom Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="720" y="347" fill="#22d3ee" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">איתור תקלות מצלמת IP:</text>
+  <text x="720" y="367" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11" text-anchor="end">1. בדיקת PoE (מתח 48V). 2. בדיקת רציפות גידים בטסטר (Wiremap). 3. בדיקת Ping לכתובת ה-IP. 4. בדיקת פורט 554 (RTSP Video Stream).</text>
+</svg>

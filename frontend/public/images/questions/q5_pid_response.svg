@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="698" height="378" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <!-- Title Badge -->
+  <rect x="20" y="15" width="310" height="30" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1" />
+  <text x="175" y="35" fill="#38bdf8" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">תגובת בקר PID במדרגה: תפקיד איבר הנגזרת (D)</text>
+
+  <!-- Response Graph Container -->
+  <g transform="translate(50, 65)">
+    <rect x="0" y="0" width="420" height="230" rx="8" fill="#020617" stroke="#1e293b" stroke-width="1.5" />
+
+    <!-- Axes -->
+    <line x1="50" y1="190" x2="400" y2="190" stroke="#64748b" stroke-width="2" />
+    <line x1="50" y1="190" x2="50" y2="30" stroke="#64748b" stroke-width="2" />
+    <text x="390" y="210" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11">זמן (t)</text>
+    <text x="25" y="30" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11">PV</text>
+
+    <!-- Setpoint Line (SP) -->
+    <line x1="50" y1="100" x2="400" y2="100" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6,4" />
+    <text x="405" y="104" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Setpoint (SP)</text>
+
+    <!-- Curve 1: PI Controller (No D) -> High Overshoot & Oscillations (Red) -->
+    <path d="M 50 190 
+             C 90 190, 110 50, 150 50 
+             C 180 50, 200 135, 230 135 
+             C 260 135, 280 85, 310 85 
+             C 330 85, 350 102, 390 100" 
+          stroke="#ef4444" stroke-width="2.5" fill="none" />
+
+    <!-- Overshoot Bracket -->
+    <line x1="150" y1="100" x2="150" y2="50" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="2,2" />
+    <text x="160" y="70" fill="#ef4444" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Overshoot גדול</text>
+
+    <!-- Curve 2: Full PID (with D action) -> Well Damped, Fast Settling (Green) -->
+    <path d="M 50 190 
+             C 95 190, 130 90, 170 95 
+             C 200 98, 230 101, 270 100 
+             L 390 100" 
+          stroke="#10b981" stroke-width="3" fill="none" />
+  </g>
+
+  <!-- Legend & Explanation on Right -->
+  <g transform="translate(490, 65)">
+    <rect x="0" y="0" width="180" height="230" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+    <text x="90" y="25" fill="#f8fafc" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מקרא בקרה</text>
+
+    <!-- Red: PI -->
+    <rect x="15" y="45" width="150" height="40" rx="5" fill="#0f172a" stroke="#ef4444" stroke-width="1" />
+    <text x="25" y="65" fill="#ef4444" font-family="Arial, sans-serif" font-size="11" font-weight="bold">בקרה ללא D (PI):</text>
+    <text x="25" y="78" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9">חריגת יתר ותנודות ממושכות</text>
+
+    <!-- Green: PID -->
+    <rect x="15" y="95" width="150" height="40" rx="5" fill="#0f172a" stroke="#10b981" stroke-width="1" />
+    <text x="25" y="115" fill="#10b981" font-family="Arial, sans-serif" font-size="11" font-weight="bold">בקרת PID עם D:</text>
+    <text x="25" y="128" fill="#a7f3d0" font-family="Arial, sans-serif" font-size="9">ריסון מעולה והתייצבות מהירה</text>
+
+    <!-- D Equation Box -->
+    <rect x="15" y="145" width="150" height="70" rx="5" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+    <text x="75" y="165" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">נוסחת איבר D</text>
+    <text x="75" y="185" fill="#ffffff" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">u_D = T_d · (de/dt)</text>
+    <text x="75" y="202" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">בלימה לפי קצב שינוי</text>
+  </g>
+
+  <!-- Bottom Explanatory Card -->
+  <g transform="translate(50, 310)">
+    <rect x="0" y="0" width="620" height="50" rx="6" fill="#1e293b" />
+    <text x="310" y="30" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">פעולת הנגזרת פועלת כמנגנון בלימה מוקדם שחוסם את המומנטום של השגיאה ומונע כניסה לאוברשוט הרסני</text>
+  </g>
+</svg>

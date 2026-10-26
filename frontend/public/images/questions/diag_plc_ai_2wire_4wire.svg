@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#4f46e5" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">כרטיסי מבוא אנלוגי בבקר (AI): תצורת 2-Wire מול 4-Wire</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(40, 65)">
+          <!-- 2-Wire Loop Powered -->
+          <rect x="0" y="0" width="285" height="240" rx="8" fill="#f8fafc" stroke="#4f46e5" stroke-width="1.5" />
+          <text x="142" y="24" fill="#4f46e5" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">משדר 2-Wire (Loop-Powered)</text>
+          
+          <!-- PLC Card on Right of box -->
+          <rect x="175" y="45" width="95" height="110" rx="4" fill="#ffffff" stroke="#4f46e5" />
+          <text x="222" y="65" fill="#4f46e5" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">כרטיס AI</text>
+          <text x="222" y="85" fill="#ef4444" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">+24V Out</text>
+          <text x="222" y="135" fill="#0f172a" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">AI In (-)</text>
+
+          <!-- Transmitter on Left -->
+          <rect x="15" y="65" width="85" height="70" rx="5" fill="#ffffff" stroke="#64748b" />
+          <text x="57" y="95" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">משדר 2-חוטים</text>
+          <text x="57" y="112" fill="#64748b" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(ללא הזנה נפרדת)</text>
+
+          <!-- Loop wires -->
+          <path d="M 200 80 L 100 80" stroke="#ef4444" stroke-width="2.5" />
+          <path d="M 100 120 L 200 120" stroke="#0f172a" stroke-width="2.5" />
+
+          <rect x="15" y="170" width="255" height="55" rx="5" fill="#eef2ff" />
+          <text x="142" y="190" fill="#312e81" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">אותם שני חוטים מספקים גם מתח</text>
+          <text x="142" y="208" fill="#312e81" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">וגם מחזירים את אות הזרם (4-20mA)</text>
+        </g>
+
+        <!-- 4-Wire Self Powered -->
+        <g transform="translate(365, 65)">
+          <rect x="0" y="0" width="295" height="240" rx="8" fill="#f8fafc" stroke="#059669" stroke-width="1.5" />
+          <text x="147" y="24" fill="#059669" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">משדר 4-Wire (Self-Powered / Active)</text>
+          
+          <!-- Transmitter -->
+          <rect x="15" y="45" width="95" height="110" rx="5" fill="#ffffff" stroke="#64748b" />
+          <text x="62" y="70" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">משדר 4-חוטים</text>
+          <text x="62" y="85" fill="#64748b" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(מד ספיקה מגנטי)</text>
+
+          <!-- External power supply 230VAC / 24VDC -->
+          <line x1="62" y1="155" x2="62" y2="190" stroke="#d97706" stroke-width="3" />
+          <text x="62" y="210" fill="#b45309" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">הזנה נפרדת (230VAC)</text>
+
+          <!-- PLC Card on Right -->
+          <rect x="180" y="55" width="95" height="85" rx="4" fill="#ffffff" stroke="#059669" />
+          <text x="227" y="80" fill="#059669" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">כרטיס AI פסיבי</text>
+          <text x="227" y="105" fill="#0f172a" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">קליטת mA (+/-)</text>
+
+          <!-- Signal lines -->
+          <path d="M 110 75 L 180 75" stroke="#059669" stroke-width="2.5" />
+          <path d="M 110 105 L 180 105" stroke="#0f172a" stroke-width="2.5" />
+
+          <rect x="15" y="170" width="265" height="55" rx="5" fill="#ecfdf5" />
+          <text x="147" y="190" fill="#065f46" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">המשדר מייצר את הזרם בעצמו (Active)</text>
+          <text x="147" y="208" fill="#065f46" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">כרטיס ה-PLC חייב להיות מוגדר כפסיבי!</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">ב-2-Wire כרטיס הבקר מספק את המתח למשדר; ב-4-Wire המשדר מוזן בנפרד ומזרים זרם אקטיבי לכרטיס</text>
+</svg>

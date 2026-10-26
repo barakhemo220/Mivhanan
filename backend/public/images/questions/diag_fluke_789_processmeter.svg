@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מכשיר כיול פלוק 789: מצבי Source mA, Simulate mA ו-Measure</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(30, 60)">
+          <!-- Mode 1: Source mA -->
+          <rect x="0" y="0" width="200" height="240" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+          <text x="100" y="25" fill="#0284c7" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">1. מצב Source mA</text>
+          <rect x="15" y="40" width="170" height="55" rx="5" fill="#e0f2fe" />
+          <text x="100" y="60" fill="#0369a1" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">הפלוק מספק מתח 24V</text>
+          <text x="100" y="77" fill="#0369a1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">+ מזרים זרם 4-20mA אקטיבי</text>
+          <text x="100" y="115" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">בדיקת כרטיס PLC פסיבי</text>
+          <text x="100" y="132" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">או שסתום בקרה מנותק</text>
+          <rect x="25" y="155" width="150" height="70" rx="5" fill="#ffffff" stroke="#cbd5e1" />
+          <text x="100" y="180" fill="#0f172a" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">חיבור: ישיר לצרכן</text>
+          <text x="100" y="198" fill="#059669" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">אין צורך בספק כוח חיצוני</text>
+        </g>
+
+        <g transform="translate(250, 60)">
+          <!-- Mode 2: Simulate mA -->
+          <rect x="0" y="0" width="200" height="240" rx="8" fill="#f8fafc" stroke="#7c3aed" stroke-width="1.5" />
+          <text x="100" y="25" fill="#7c3aed" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">2. מצב Simulate mA</text>
+          <rect x="15" y="40" width="170" height="55" rx="5" fill="#f3e8ff" />
+          <text x="100" y="60" fill="#6b21a8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">הפלוק מתנהג כמשדר 2-Wire</text>
+          <text x="100" y="77" fill="#6b21a8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מווסת זרם בחוג עם מתח קיים</text>
+          <text x="100" y="115" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">החלפת משדר שטח תקול</text>
+          <text x="100" y="132" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">לצורך בדיקת חוג מול ה-DCS</text>
+          <rect x="25" y="155" width="150" height="70" rx="5" fill="#ffffff" stroke="#cbd5e1" />
+          <text x="100" y="180" fill="#0f172a" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">חובה: ספק 24VDC בחוג</text>
+          <text x="100" y="198" fill="#7c3aed" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">הפלוק פועל כעומס משתנה</text>
+        </g>
+
+        <g transform="translate(470, 60)">
+          <!-- Mode 3: Measure mA -->
+          <rect x="0" y="0" width="200" height="240" rx="8" fill="#f8fafc" stroke="#059669" stroke-width="1.5" />
+          <text x="100" y="25" fill="#059669" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">3. מצב Measure mA</text>
+          <rect x="15" y="40" width="170" height="55" rx="5" fill="#dcfce7" />
+          <text x="100" y="60" fill="#14532d" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">מד זרם פסיבי רגיל</text>
+          <text x="100" y="77" fill="#14532d" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">קריאת הזרם בלולאה חיה</text>
+          <text x="100" y="115" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">אימות קריאת השטח</text>
+          <text x="100" y="132" fill="#475569" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מול התצוגה בחדר הבקרה</text>
+          <rect x="25" y="155" width="150" height="70" rx="5" fill="#ffffff" stroke="#cbd5e1" />
+          <text x="100" y="180" fill="#0f172a" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">חיבור: בטור למשדר</text>
+          <text x="100" y="198" fill="#059669" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מדידה שקופה ללא שינוי חוג</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">במצב Source הפלוק מייצר מתח וזרם; במצב Simulate הפלוק מווסת זרם בחוג עם ספק כוח קיים</text>
+</svg>

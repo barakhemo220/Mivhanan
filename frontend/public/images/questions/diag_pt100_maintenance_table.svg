@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#d97706" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">טבלת התנגדות PT100 ותסמיני תקלות נפוצות (קצר מול נתק)</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <!-- Left Table -->
+        <g transform="translate(40, 65)">
+          <rect x="0" y="0" width="290" height="245" rx="8" fill="#ffffff" stroke="#cbd5e1" />
+          <rect x="0" y="0" width="290" height="32" rx="8" fill="#f8fafc" />
+          <text x="75" y="21" fill="#0f172a" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">טמפרטורה (°C)</text>
+          <text x="215" y="21" fill="#0f172a" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">התנגדות תקנית (Ω)</text>
+          
+          <g font-family="Arial, sans-serif" font-size="10" fill="#334155">
+            <line x1="0" y1="32" x2="290" y2="32" stroke="#e2e8f0" />
+            <text x="75" y="52" text-anchor="middle">-50 °C</text><text x="215" y="52" font-weight="bold" text-anchor="middle">80.31 Ω</text>
+            <line x1="0" y1="62" x2="290" y2="62" stroke="#f1f5f9" />
+            <text x="75" y="82" fill="#0284c7" font-weight="bold" text-anchor="middle">0 °C (נקודת קרח)</text><text x="215" y="82" fill="#0284c7" font-weight="bold" text-anchor="middle">100.00 Ω (Pt100!)</text>
+            <line x1="0" y1="92" x2="290" y2="92" stroke="#f1f5f9" />
+            <text x="75" y="112" text-anchor="middle">20 °C (חדר)</text><text x="215" y="112" font-weight="bold" text-anchor="middle">107.79 Ω</text>
+            <line x1="0" y1="122" x2="290" y2="122" stroke="#f1f5f9" />
+            <text x="75" y="142" text-anchor="middle">50 °C</text><text x="215" y="142" font-weight="bold" text-anchor="middle">119.40 Ω</text>
+            <line x1="0" y1="152" x2="290" y2="152" stroke="#f1f5f9" />
+            <text x="75" y="172" fill="#d97706" font-weight="bold" text-anchor="middle">100 °C (רתיחה)</text><text x="215" y="172" fill="#d97706" font-weight="bold" text-anchor="middle">138.51 Ω (α=0.00385)</text>
+            <line x1="0" y1="182" x2="290" y2="182" stroke="#f1f5f9" />
+            <text x="75" y="202" text-anchor="middle">200 °C</text><text x="215" y="202" font-weight="bold" text-anchor="middle">175.86 Ω</text>
+            <line x1="0" y1="212" x2="290" y2="212" stroke="#f1f5f9" />
+            <text x="75" y="232" text-anchor="middle">400 °C</text><text x="215" y="232" font-weight="bold" text-anchor="middle">247.09 Ω</text>
+          </g>
+        </g>
+
+        <!-- Right: Fault Diagnostics -->
+        <g transform="translate(350, 65)">
+          <!-- Short Circuit -->
+          <rect x="0" y="0" width="310" height="115" rx="8" fill="#fff1f2" stroke="#f43f5e" />
+          <text x="155" y="24" fill="#be123c" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">תקלה 1: קצר בין גידי ה-RTD (R ≈ 0Ω)</text>
+          <text x="15" y="48" fill="#475569" font-family="Arial, sans-serif" font-size="10">• קריאת המשדר צונחת למינימום: כ- 200°C-</text>
+          <text x="15" y="68" fill="#475569" font-family="Arial, sans-serif" font-size="10">• זרם שגיאת כשל (NAMUR Downscale): קטן מ- 3.6mA</text>
+          <text x="15" y="88" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold">• סיבה נפוצה: חדירת מים/רטיבות לראש החיבורים בשטח</text>
+
+          <!-- Open Circuit -->
+          <rect x="0" y="130" width="310" height="115" rx="8" fill="#fef3c7" stroke="#f59e0b" />
+          <text x="155" y="154" fill="#b45309" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">תקלה 2: נתק באחד הגידים (R = ∞)</text>
+          <text x="15" y="178" fill="#475569" font-family="Arial, sans-serif" font-size="10">• קריאת המשדר קופצת למקסימום: Over-range / +850°C</text>
+          <text x="15" y="198" fill="#475569" font-family="Arial, sans-serif" font-size="10">• זרם שגיאת כשל (NAMUR Upscale): גדול מ- 21.0mA</text>
+          <text x="15" y="218" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold">• סיבה נפוצה: שבר מכני באלמנט עקב רעידות בצנרת</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">בדיקת אוהם מהירה בפלוק: 100Ω מייצג 0°C. קצר מציג ערך שלילי עמוק, נתק מציג מקסימום סקאלה.</text>
+</svg>

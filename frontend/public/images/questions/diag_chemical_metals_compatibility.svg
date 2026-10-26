@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1.2" />
+  <text x="210" y="36" fill="#fbbf24" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">טבלת עמידות מתכות מכשור לכימיקלים קשים (כלור, ברום, סודה)</text>
+
+  <!-- Chemical Matrix Table -->
+  <g transform="translate(35, 65)">
+    <!-- Header Row -->
+    <rect x="0" y="0" width="690" height="32" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2" />
+    <text x="70" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">סוג החומר / תהליך</text>
+    <text x="210" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">נירוסטה 316L</text>
+    <text x="340" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">הסטלוי C-276</text>
+    <text x="470" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">טיטניום (Titanium)</text>
+    <text x="600" y="21" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">טנטלום (Tantalum) / ציפוי</text>
+
+    <!-- Row 1: כלור יבש (Dry Chlorine) -->
+    <rect x="0" y="36" width="690" height="36" rx="3" fill="#1e293b" />
+    <text x="70" y="58" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">כלור יבש (Dry Cl₂)</text>
+    <text x="210" y="58" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ תקין (טמפ' חדר)</text>
+    <text x="340" y="58" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ מצוין</text>
+    <text x="470" y="58" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✗ אסור! שריפה ספונטנית!</text>
+    <text x="600" y="58" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">✓ עמיד מאוד</text>
+
+    <!-- Row 2: כלור רטוב / לח (Wet Chlorine) -->
+    <rect x="0" y="76" width="690" height="36" rx="3" fill="#0f172a" />
+    <text x="70" y="98" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">כלור רטוב (Wet Cl₂)</text>
+    <text x="210" y="98" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✗ קורוזיה מהירה</text>
+    <text x="340" y="98" fill="#eab308" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">○ בינוני (מוגבל)</text>
+    <text x="470" y="98" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ מצוין (יוצר שכבת פסיבציה)</text>
+    <text x="600" y="98" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ עמידות מושלמת</text>
+
+    <!-- Row 3: ברום (Bromine Br₂) -->
+    <rect x="0" y="116" width="690" height="36" rx="3" fill="#1e293b" />
+    <text x="70" y="138" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">ברום (Bromine Br₂)</text>
+    <text x="210" y="138" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✗ נהרס מיד</text>
+    <text x="340" y="138" fill="#eab308" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">○ יבש בלבד / מוגבל</text>
+    <text x="470" y="138" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✗ תקיפה חריפה</text>
+    <text x="600" y="138" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ טנטלום / PTFE / PVDF</text>
+
+    <!-- Row 4: סודה קאוסטית (NaOH Caustic Soda) -->
+    <rect x="0" y="156" width="690" height="36" rx="3" fill="#0f172a" />
+    <text x="70" y="178" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">סודה קאוסטית (NaOH)</text>
+    <text x="210" y="178" fill="#eab308" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">○ שבירות קאוסטית מעל 60°C</text>
+    <text x="340" y="178" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">✓ עמיד עד ריכוזים גבוהים</text>
+    <text x="470" y="178" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">✗ פגיע בריכוז גבוה</text>
+    <text x="600" y="178" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ ניקל 200 / Monel 400</text>
+
+    <!-- Row 5: מגנזיום וכלורידים -->
+    <rect x="0" y="196" width="690" height="36" rx="3" fill="#1e293b" />
+    <text x="70" y="218" fill="#f8fafc" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">מגנזיום כלוריד (MgCl₂)</text>
+    <text x="210" y="218" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">✗ Stress Corrosion Cracking</text>
+    <text x="340" y="218" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ Hastelloy עמיד מאוד</text>
+    <text x="470" y="218" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">✓ תקין</text>
+    <text x="600" y="218" fill="#22c55e" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">✓ עמידות מלאה</text>
+  </g>
+
+  <!-- Bottom Warning Box -->
+  <rect x="25" y="320" width="710" height="60" rx="6" fill="#1e293b" stroke="#ef4444" stroke-width="1.2" />
+  <text x="720" y="342" fill="#ef4444" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">אזהרת בטיחות חמורה במכשור:</text>
+  <text x="720" y="362" fill="#f87171" font-family="Arial, sans-serif" font-size="10" text-anchor="end">אסור להשתמש בדיאפרגמות או צנרת טיטניום עם כלור יבש (פחות מ-0.5% לחות) עקב סכנת התלקחות אלימה! עבור ברום חובה להשתמש בדיאפרגמת טנטלום או ציפוי PTFE/PVDF.</text>
+</svg>

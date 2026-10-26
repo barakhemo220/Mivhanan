@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#4f46e5" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מד ספיקה מסית קוריוליס (Coriolis Mass Meter): מדידת מסה וצפיפות ישירה</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(60, 65)">
+          <rect x="0" y="0" width="580" height="240" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          
+          <!-- Flow tubes -->
+          <path d="M 40 120 C 120 40, 240 40, 320 120" fill="none" stroke="#4f46e5" stroke-width="8" />
+          <path d="M 40 140 C 120 220, 240 220, 320 140" fill="none" stroke="#4f46e5" stroke-width="8" />
+          
+          <!-- Excitation Drive Coil in Center -->
+          <circle cx="180" cy="130" r="14" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+          <text x="180" y="134" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle">סליל עירור</text>
+          
+          <!-- Pickoff Sensors Left and Right -->
+          <circle cx="100" cy="95" r="10" fill="#059669" />
+          <text x="100" y="75" fill="#047857" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">Pickoff כניסה</text>
+
+          <circle cx="260" cy="95" r="10" fill="#059669" />
+          <text x="260" y="75" fill="#047857" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">Pickoff יציאה</text>
+
+          <!-- Explanation box on right side -->
+          <g transform="translate(350, 20)">
+            <rect x="0" y="0" width="210" height="195" rx="6" fill="#ffffff" stroke="#cbd5e1" />
+            <text x="105" y="24" fill="#4f46e5" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">מדידה ישירה של מסה וצפיפות</text>
+            <text x="15" y="55" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold">1. ספיקה מסית (kg/h):</text>
+            <text x="15" y="72" fill="#475569" font-family="Arial, sans-serif" font-size="9">הפרש פאזה בזמן (Δt) בין שני חיישני ה-Pickoff עקב כוח קוריוליס</text>
+            
+            <text x="15" y="110" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold">2. צפיפות הנוזל (Density):</text>
+            <text x="15" y="127" fill="#475569" font-family="Arial, sans-serif" font-size="9">נמדדת לפי תדר התהודה הטבעי של הצינורות הרועדים</text>
+
+            <text x="15" y="165" fill="#059669" font-family="Arial, sans-serif" font-size="9" font-weight="bold">אינו דורש קטעי צנרת ישרים (0D/0D)!</text>
+          </g>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">מד קוריוליס אינו מושפע מפרופיל הזרימה (ללא דרישת L/D) ומודד ישירות מסה, צפיפות וטמפרטורה בו-זמנית</text>
+</svg>

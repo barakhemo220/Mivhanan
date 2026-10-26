@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="698" height="378" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <!-- Title Badge -->
+  <rect x="20" y="15" width="310" height="30" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1" />
+  <text x="175" y="35" fill="#38bdf8" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מתמר זרם ללחץ (I/P Converter) - עקרון נחיר-לוחיקה</text>
+
+  <!-- Main Mechanism Diagram -->
+  <g transform="translate(60, 60)">
+    <!-- Supply Air Input (20 PSI) -->
+    <path d="M 0 160 L 100 160" stroke="#f59e0b" stroke-width="6" />
+    <text x="45" y="145" fill="#f59e0b" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Supply Air (20 PSI)</text>
+
+    <!-- Restriction Orifice -->
+    <rect x="100" y="152" width="20" height="16" fill="#64748b" stroke="#cbd5e1" stroke-width="1" />
+    <circle cx="110" cy="160" r="3" fill="#0f172a" />
+    <text x="110" y="140" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">צמצם קבוע</text>
+
+    <!-- Air chamber branching to Nozzle and Output -->
+    <path d="M 120 160 L 220 160" stroke="#38bdf8" stroke-width="6" />
+    <!-- Branch up to Nozzle -->
+    <path d="M 220 160 L 220 100" stroke="#38bdf8" stroke-width="6" />
+    <!-- Nozzle Tip -->
+    <path d="M 210 100 L 230 100 L 225 80 L 215 80 Z" fill="#94a3b8" stroke="#cbd5e1" stroke-width="1.5" />
+    <text x="170" y="90" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="11" font-weight="bold">נחיר (Nozzle)</text>
+
+    <!-- Flapper (Beam pivoted) -->
+    <!-- Pivot -->
+    <circle cx="340" cy="76" r="6" fill="#f59e0b" />
+    <path d="M 195 76 L 360 76" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round" />
+    <text x="280" y="65" fill="#f8fafc" font-family="Arial, sans-serif" font-size="11" font-weight="bold">לוחיקה (Flapper)</text>
+
+    <!-- Air venting escape arrow when flapper is open -->
+    <path d="M 220 72 L 220 50 M 215 58 L 220 50 L 225 58" stroke="#38bdf8" stroke-width="2" fill="none" />
+    <text x="220" y="40" fill="#38bdf8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">פליטת אוויר</text>
+
+    <!-- Voice Coil / Electromagnet (driven by 4-20mA) -->
+    <g transform="translate(340, 45)">
+      <!-- Magnet poles N and S -->
+      <rect x="20" y="0" width="30" height="25" fill="#ef4444" rx="2" />
+      <text x="35" y="17" fill="#ffffff" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">N</text>
+      <rect x="20" y="40" width="30" height="25" fill="#3b82f6" rx="2" />
+      <text x="35" y="57" fill="#ffffff" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">S</text>
+
+      <!-- Coil attached to flapper arm -->
+      <rect x="0" y="15" width="18" height="35" rx="3" fill="#f59e0b" stroke="#d97706" stroke-width="1.5" />
+      <text x="9" y="36" fill="#0f172a" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle">Coil</text>
+    </g>
+
+    <!-- Electrical Input 4-20mA -->
+    <path d="M 400 90 L 450 90" stroke="#facc15" stroke-width="3" stroke-dasharray="4,2" />
+    <text x="440" y="80" fill="#facc15" font-family="Arial, sans-serif" font-size="12" font-weight="bold">4-20 mA In</text>
+
+    <!-- Output to Pneumatic Valve (3-15 PSI) -->
+    <path d="M 220 160 L 220 220 L 450 220" stroke="#10b981" stroke-width="6" />
+    <!-- Pressure Gauge -->
+    <circle cx="360" cy="220" r="22" fill="#1e293b" stroke="#10b981" stroke-width="2" />
+    <text x="360" y="224" fill="#34d399" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">PSI</text>
+    <text x="440" y="210" fill="#34d399" font-family="Arial, sans-serif" font-size="13" font-weight="bold">יציאה פנאומטית: 3-15 PSI</text>
+  </g>
+
+  <!-- Bottom Explanatory Card -->
+  <g transform="translate(60, 305)">
+    <rect x="0" y="0" width="580" height="55" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1" />
+    <text x="290" y="23" fill="#f8fafc" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">עלייה בזרם (4mA ← 20mA) ◄ כוח אלקטרומגנטי מקרב את הלוחיקה לנחיר</text>
+    <text x="290" y="42" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">בריחת האוויר נחסמת ◄ הלחץ הפנימי גדל ◄ לחץ היציאה לפועל עולה ליניארית ל-15 PSI</text>
+  </g>
+</svg>

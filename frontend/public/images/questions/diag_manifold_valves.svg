@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">סעפות שסתומים (3-Valve & 5-Valve Manifold) וסדר פתיחה בטוח</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(50, 65)">
+          <rect x="0" y="0" width="280" height="240" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="140" y="25" fill="#0284c7" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מבנה 3-Valve Manifold</text>
+          
+          <!-- High & Low Pipes -->
+          <line x1="40" y1="50" x2="40" y2="210" stroke="#ef4444" stroke-width="4" />
+          <text x="25" y="65" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold">High</text>
+          
+          <line x1="240" y1="50" x2="240" y2="210" stroke="#0284c7" stroke-width="4" />
+          <text x="255" y="65" fill="#0284c7" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Low</text>
+
+          <!-- High Block Valve -->
+          <circle cx="40" cy="90" r="14" fill="#ffffff" stroke="#ef4444" stroke-width="2" />
+          <text x="75" y="94" font-family="Arial, sans-serif" font-size="9">High Block</text>
+
+          <!-- Low Block Valve -->
+          <circle cx="240" cy="90" r="14" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+          <text x="200" y="94" font-family="Arial, sans-serif" font-size="9" text-anchor="end">Low Block</text>
+
+          <!-- Equalizing Valve in middle -->
+          <line x1="40" y1="150" x2="240" y2="150" stroke="#64748b" stroke-width="3" />
+          <circle cx="140" cy="150" r="16" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+          <text x="140" y="154" fill="#713f12" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">Equalize</text>
+
+          <!-- DP cell at bottom -->
+          <rect x="70" y="190" width="140" height="40" rx="5" fill="#e0e7ff" stroke="#4f46e5" />
+          <text x="140" y="214" fill="#1e1b4b" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">משדר DP Cell</text>
+        </g>
+
+        <!-- Right: Sequencing Rules -->
+        <g transform="translate(360, 65)">
+          <rect x="0" y="0" width="300" height="240" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="150" y="25" fill="#0f172a" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">סדר פעולות מחייב באחזקה</text>
+
+          <!-- Putting into service -->
+          <rect x="15" y="45" width="270" height="85" rx="6" fill="#ecfdf5" stroke="#10b981" />
+          <text x="25" y="65" fill="#047857" font-family="Arial, sans-serif" font-size="11" font-weight="bold">הכנסה לעבודה (Commissioning):</text>
+          <text x="25" y="85" fill="#334155" font-family="Arial, sans-serif" font-size="10">1. פתח שסתום Equalize (השוואת לחץ)</text>
+          <text x="25" y="103" fill="#334155" font-family="Arial, sans-serif" font-size="10">2. פתח לאט שסתום High (לחץ גבוה)</text>
+          <text x="25" y="121" fill="#334155" font-family="Arial, sans-serif" font-size="10">3. סגור Equalize, ורק בסוף פתח שסתום Low</text>
+
+          <!-- Danger Callout -->
+          <rect x="15" y="145" width="270" height="85" rx="6" fill="#fff1f2" stroke="#f43f5e" />
+          <text x="25" y="165" fill="#be123c" font-family="Arial, sans-serif" font-size="11" font-weight="bold">אזהרה מפני קריעת דיאפרגמה:</text>
+          <text x="25" y="185" fill="#be123c" font-family="Arial, sans-serif" font-size="10">לעולם אל תשאיר את Equalize סגור בזמן פתיחת</text>
+          <text x="25" y="202" fill="#be123c" font-family="Arial, sans-serif" font-size="10">אחד מקווי הלחץ, הדבר ייצור עומס יתר חד-צדדי</text>
+          <text x="25" y="219" fill="#be123c" font-family="Arial, sans-serif" font-size="10">(Over-range) שיקרע את קפסולת המשדר!</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">במניפולד חובה להשוות לחצים לפני פתיחת או סגירת הקווים למניעת קריעת דיאפרגמת המדידה של המשדר</text>
+</svg>

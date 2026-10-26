@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">תקשורת HART: דרישת נגד 250Ω בחוג וחיבור ה-Field Communicator</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(60, 65)">
+          <!-- 24V Power -->
+          <rect x="20" y="40" width="70" height="50" rx="4" fill="#ffffff" stroke="#64748b" />
+          <text x="55" y="70" fill="#0f172a" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">24VDC</text>
+
+          <!-- 250 Ohm Resistor in series -->
+          <rect x="180" y="45" width="90" height="40" rx="4" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+          <text x="225" y="65" fill="#713f12" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">נגד 250Ω</text>
+          <text x="225" y="78" fill="#ca8a04" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">(HART Load)</text>
+
+          <!-- Field Device / Transmitter -->
+          <circle cx="370" cy="120" r="35" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2" />
+          <text x="370" y="118" fill="#1e1b4b" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">משדר HART</text>
+          <text x="370" y="132" fill="#4f46e5" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">4-20mA</text>
+
+          <!-- Wires forming loop -->
+          <path d="M 90 65 L 180 65" stroke="#ef4444" stroke-width="2.5" />
+          <path d="M 270 65 L 370 65 L 370 85" stroke="#ef4444" stroke-width="2.5" />
+          <path d="M 370 155 L 370 190 L 55 190 L 55 90" stroke="#0f172a" stroke-width="2.5" />
+
+          <!-- HART Communicator connected in PARALLEL across loop / resistor -->
+          <g transform="translate(160, 130)">
+            <rect x="0" y="0" width="130" height="80" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+            <text x="65" y="25" fill="#0284c7" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">פלוק / קומיוניקטור</text>
+            <text x="65" y="42" fill="#0284c7" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">HART 475 / Trex</text>
+            <circle cx="35" cy="65" r="4" fill="#ef4444" /><circle cx="95" cy="65" r="4" fill="#0f172a" />
+          </g>
+
+          <path d="M 195 195 L 195 85" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2" />
+          <path d="M 255 195 L 255 85" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="3,2" />
+        </g>
+
+        <!-- Right: Explanation Card -->
+        <g transform="translate(480, 65)">
+          <rect x="0" y="0" width="180" height="240" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="90" y="25" fill="#0f172a" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">למה צריך 250Ω?</text>
+          
+          <rect x="10" y="40" width="160" height="65" rx="4" fill="#eef2ff" />
+          <text x="90" y="60" fill="#312e81" font-family="Arial, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">המרת זרם למתח:</text>
+          <text x="90" y="75" fill="#312e81" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">אות FSK של 0.5mA</text>
+          <text x="90" y="90" fill="#312e81" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">מייצר מתח של 125mV p-p</text>
+
+          <text x="15" y="130" fill="#334155" font-family="Arial, sans-serif" font-size="9">• ספק כוח אידיאלי הוא בעל עכבה 0Ω</text>
+          <text x="15" y="150" fill="#334155" font-family="Arial, sans-serif" font-size="9">• ללא נגד, הספק היה בולע את גל התקשורת!</text>
+          <text x="15" y="175" fill="#047857" font-family="Arial, sans-serif" font-size="9" font-weight="bold">• תחום תקני: 230Ω עד 1100Ω</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">קומיוניקטור HART מתחבר במקביל למעגל. ללא עכבת חוג של לפחות 250Ω לא ניתן לקיים תקשורת ספרתית.</text>
+</svg>

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2" />
+  <text x="210" y="36" fill="#38bdf8" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מתמרי שקילה (Load Cell): גשר ויטסטון, רגישות mV/V וכבל 6 חוטים</text>
+
+  <!-- Left: Wheatstone Bridge Circuit Diagram -->
+  <g transform="translate(60, 65)">
+    <rect x="0" y="0" width="280" height="245" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="140" y="24" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">מעגל גשר ויטסטון עם Strain Gauges</text>
+    <line x1="10" y1="34" x2="270" y2="34" stroke="#334155" />
+
+    <!-- Diamond Bridge -->
+    <polygon points="140,55 210,125 140,195 70,125" fill="none" stroke="#64748b" stroke-width="2.5" />
+
+    <!-- 4 Resistors (Strain Gauges) -->
+    <!-- R1 Tension -->
+    <rect x="90" y="78" width="25" height="15" rx="2" fill="#ef4444" />
+    <text x="80" y="72" fill="#fca5a5" font-family="Arial, sans-serif" font-size="9">+R1 (מתיחה)</text>
+
+    <!-- R2 Compression -->
+    <rect x="165" y="78" width="25" height="15" rx="2" fill="#3b82f6" />
+    <text x="200" y="72" fill="#93c5fd" font-family="Arial, sans-serif" font-size="9">-R2 (לחיצה)</text>
+
+    <!-- R3 Compression -->
+    <rect x="90" y="150" width="25" height="15" rx="2" fill="#3b82f6" />
+    <text x="80" y="178" fill="#93c5fd" font-family="Arial, sans-serif" font-size="9">-R3 (לחיצה)</text>
+
+    <!-- R4 Tension -->
+    <rect x="165" y="150" width="25" height="15" rx="2" fill="#ef4444" />
+    <text x="200" y="178" fill="#fca5a5" font-family="Arial, sans-serif" font-size="9">+R4 (מתיחה)</text>
+
+    <!-- Excitation Terminals -->
+    <circle cx="140" cy="55" r="5" fill="#f59e0b" />
+    <text x="140" y="47" fill="#fbbf24" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">+EXC (10V DC)</text>
+
+    <circle cx="140" cy="195" r="5" fill="#f59e0b" />
+    <text x="140" y="215" fill="#fbbf24" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">-EXC (0V GND)</text>
+
+    <!-- Signal Output Terminals -->
+    <circle cx="70" cy="125" r="5" fill="#22c55e" />
+    <text x="58" y="115" fill="#4ade80" font-family="Arial, sans-serif" font-size="10" font-weight="bold">-SIG</text>
+
+    <circle cx="210" cy="125" r="5" fill="#22c55e" />
+    <text x="225" y="115" fill="#4ade80" font-family="Arial, sans-serif" font-size="10" font-weight="bold">+SIG (mV)</text>
+    <text x="140" y="130" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">ΔV (mV)</text>
+  </g>
+
+  <!-- Right: 4-Wire vs 6-Wire & Sensitivity Calculation -->
+  <g transform="translate(370, 65)">
+    <rect x="0" y="0" width="350" height="245" rx="8" fill="#1e293b" stroke="#475569" />
+    <text x="175" y="24" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">רגישות מתמר וכבל 6 חוטים (Sense)</text>
+    <line x1="10" y1="34" x2="340" y2="34" stroke="#334155" />
+
+    <!-- mV/V Sensitivity Calculation -->
+    <rect x="15" y="45" width="320" height="65" rx="5" fill="#0f172a" stroke="#0ea5e9" />
+    <text x="30" y="65" fill="#7dd3fc" font-family="Arial, sans-serif" font-size="10" font-weight="bold">משמעות רגישות 2 mV/V:</text>
+    <text x="30" y="85" fill="#ffffff" font-family="Arial, sans-serif" font-size="9">• במתח עירור של 10V DC ובעומס מקסימלי 100%:</text>
+    <text x="30" y="100" fill="#facc15" font-family="Arial, sans-serif" font-size="9" font-weight="bold">מוצא האות הוא 20 mV בלבד! (10V × 2 mV/V = 20 mV)</text>
+
+    <!-- 6-Wire Connection vs 4-Wire -->
+    <rect x="15" y="120" width="320" height="110" rx="5" fill="#0f172a" stroke="#10b981" />
+    <text x="30" y="140" fill="#34d399" font-family="Arial, sans-serif" font-size="10" font-weight="bold">מדוע מומלץ כבל 6 חוטים (+Sense / -Sense)?</text>
+    <text x="30" y="160" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• זוג חוטי ה-Sense מודדים את המתח המדויק על גבי הגשר.</text>
+    <text x="30" y="178" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• מפצים על מפלי מתח בכבלים ארוכים (מעל 10 מטר).</text>
+    <text x="30" y="196" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• מנטרלים לחלוטין שגיאות הנגרמות משינויי טמפרטורה בכבל.</text>
+    <text x="30" y="214" fill="#4ade80" font-family="Arial, sans-serif" font-size="9" font-weight="bold">בכבל 4-חוטים קצר: חובה לגשר בין +EXC ל-+SEN ובין -EXC ל--SEN</text>
+  </g>
+
+  <!-- Bottom Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="720" y="347" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">עקרון פעולת Strain Gauge:</text>
+  <text x="720" y="367" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11" text-anchor="end">העומס המכני מעוות את פסי המתכת של מד המאמץ. מתיחה מאריכה את המוליך ומגדילה את התנגדותו, לחיצה מקצרת ומקטינה. יציאת הגשר מגיבה בהפרש מתח של מיליוולטים בודדים.</text>
+</svg>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#14b8a6" stroke-width="1.2" />
+  <text x="210" y="36" fill="#2dd4bf" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">עקרון מדידת עכירות (Turbidity): שיטת פיזור אור 90° (NTU / FNU)</text>
+
+  <!-- Main Diagram: Sample Chamber & Detectors -->
+  <g transform="translate(60, 65)">
+    <!-- Sample Cuvette / Flow Cell -->
+    <rect x="180" y="50" width="140" height="150" rx="10" fill="rgba(20, 184, 166, 0.12)" stroke="#14b8a6" stroke-width="2" />
+    <text x="250" y="40" fill="#2dd4bf" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">תא דגימה / זרימת מים</text>
+
+    <!-- Suspended Particles inside Water -->
+    <circle cx="220" cy="110" r="3.5" fill="#f59e0b" />
+    <circle cx="260" cy="130" r="4.5" fill="#f59e0b" />
+    <circle cx="235" cy="155" r="3" fill="#f59e0b" />
+    <circle cx="280" cy="95" r="4" fill="#f59e0b" />
+    <text x="250" y="180" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">חלקיקים מרחפים (Suspended Solids)</text>
+
+    <!-- Light Source (LED NIR 860nm or Tungsten Lamp) on Left -->
+    <rect x="40" y="105" width="75" height="40" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="77" y="125" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">מקור אור NIR</text>
+    <text x="77" y="138" fill="#94a3b8" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">860nm / ISO 7027</text>
+
+    <!-- Incident Light Beam -->
+    <path d="M 115,125 L 180,125" fill="none" stroke="#38bdf8" stroke-width="5" />
+    <path d="M 180,125 L 320,125" fill="none" stroke="#38bdf8" stroke-width="4" stroke-opacity="0.6" />
+
+    <!-- 180 Transmitted Light Detector (Right) -->
+    <rect x="345" y="105" width="75" height="40" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5" />
+    <text x="382" y="123" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">גלאי העברה</text>
+    <text x="382" y="137" fill="#94a3b8" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">Transmitted 180°</text>
+
+    <!-- 90 Scattered Light Beam (Nephelometric Detector) Top -->
+    <path d="M 250,125 L 250,2" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="4,2" />
+    <rect x="210" y="-35" width="80" height="35" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2" />
+    <text x="250" y="-18" fill="#fbbf24" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">גלאי נפלומטרי 90°</text>
+    <text x="250" y="-5" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">מדידת אור מפוזר</text>
+  </g>
+
+  <!-- Right Side Info Box -->
+  <g transform="translate(510, 65)">
+    <rect x="0" y="0" width="225" height="245" rx="8" fill="#1e293b" stroke="#475569" />
+    <text x="112" y="24" fill="#2dd4bf" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מאפייני מד עכירות</text>
+    <line x1="10" y1="34" x2="215" y2="34" stroke="#334155" />
+
+    <text x="12" y="55" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold">יחידות מדידה:</text>
+    <text x="12" y="73" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• NTU (Nephelometric Turbidity)</text>
+    <text x="12" y="90" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• FNU (Formazin Nephelometric)</text>
+
+    <text x="12" y="118" fill="#f59e0b" font-family="Arial, sans-serif" font-size="10" font-weight="bold">כיול תקני:</text>
+    <text x="12" y="136" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• תמיסת פורמזין (Formazin)</text>
+    <text x="12" y="153" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• תקן עבודה משני 20 / 100 NTU</text>
+
+    <text x="12" y="180" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold">גורמי שגיאה נפוצים:</text>
+    <text x="12" y="198" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• בועות אוויר (מזייפות כלפי מעלה!)</text>
+    <text x="12" y="215" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• לכלוך זגוגית (חובה מגב Wiper)</text>
+    <text x="12" y="232" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9">• חדירת אור סביבתי חיצוני</text>
+  </g>
+
+  <!-- Bottom Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="720" y="347" fill="#2dd4bf" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">עקרון נפלומטרי (Nephelometric):</text>
+  <text x="720" y="367" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11" text-anchor="end">אור הפוגע בחלקיקים במים מתפזר לכל הכיוונים. כמות האור הנקלטת בגלאי בזווית 90° ביחס לקרן ישרה פרופורציונלית ישירות לרמת העכירות (NTU).</text>
+</svg>

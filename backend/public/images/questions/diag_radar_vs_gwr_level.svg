@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מדידת מפלס במכ"ם: מכ"ם ללא מגע (FMCW) מול מכ"ם גל מונחה (GWR TDR)</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(50, 65)">
+          <!-- Non-contact radar -->
+          <rect x="0" y="0" width="280" height="240" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" />
+          <text x="140" y="25" fill="#0284c7" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מכ"ם ללא מגע (Free Space Radar)</text>
+          
+          <!-- Radar Horn Antenna -->
+          <path d="M 120 40 L 160 40 L 175 75 L 105 75 Z" fill="#475569" />
+          <circle cx="140" cy="35" r="15" fill="#0284c7" />
+
+          <!-- Radiating waves -->
+          <path d="M 120 90 Q 140 100 160 90" stroke="#0284c7" stroke-width="2" fill="none" />
+          <path d="M 105 110 Q 140 125 175 110" stroke="#0284c7" stroke-width="2" fill="none" />
+          <path d="M 90 130 Q 140 150 190 130" stroke="#0284c7" stroke-width="2" fill="none" />
+
+          <!-- Surface liquid -->
+          <rect x="15" y="160" width="250" height="65" rx="4" fill="#e0f2fe" />
+          <text x="140" y="195" fill="#0369a1" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">פני הנוזל</text>
+
+          <text x="140" y="145" fill="#64748b" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">קרן אלקטרומגנטית 80GHz / 26GHz</text>
+        </g>
+
+        <!-- Guided Wave Radar -->
+        <g transform="translate(360, 65)">
+          <rect x="0" y="0" width="290" height="240" rx="8" fill="#f8fafc" stroke="#7c3aed" stroke-width="1.5" />
+          <text x="145" y="25" fill="#7c3aed" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">מכ"ם גל מונחה (Guided Wave / TDR)</text>
+          
+          <!-- Transmitter Head -->
+          <circle cx="145" cy="40" r="16" fill="#7c3aed" />
+          
+          <!-- Probe / Cable -->
+          <line x1="145" y1="56" x2="145" y2="220" stroke="#475569" stroke-width="4" />
+          <circle cx="145" cy="220" r="6" fill="#475569" />
+
+          <!-- Reflected pulse at liquid surface -->
+          <circle cx="145" cy="150" r="10" fill="#f59e0b" opacity="0.6" />
+          <path d="M 160 145 L 210 145" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow)" />
+          <text x="215" y="149" fill="#b45309" font-family="Arial, sans-serif" font-size="9" font-weight="bold">החזרה בשינוי קבוע דיאלקטרי ε_r</text>
+
+          <!-- Fluid -->
+          <rect x="20" y="150" width="250" height="75" rx="4" fill="#ede9fe" />
+          
+          <text x="25" y="80" fill="#334155" font-family="Arial, sans-serif" font-size="9">• חסין לחלוטין בפני קצף, אבק ואדים</text>
+          <text x="25" y="98" fill="#334155" font-family="Arial, sans-serif" font-size="9">• מודד גם קו הפרדה (Interface) בין נפט למים</text>
+          <text x="25" y="116" fill="#334155" font-family="Arial, sans-serif" font-size="9">• פועל לפי זמן מעוף פולס (TDR)</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">GWR פועל בעזרת כבל מוליך וחסין לאבק וקצף. מכ"ם ללא מגע מצטיין בנוזלים אגרסיביים ללא מגע בחומר.</text>
+</svg>

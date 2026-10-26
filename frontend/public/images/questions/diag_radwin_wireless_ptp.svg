@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%">
+  <rect width="760" height="400" rx="12" fill="#0f172a" />
+  <rect x="1" y="1" width="758" height="398" rx="11" fill="none" stroke="#334155" stroke-width="1.5" />
+
+  <rect x="25" y="15" width="370" height="32" rx="6" fill="#1e293b" stroke="#0284c7" stroke-width="1.2" />
+  <text x="210" y="36" fill="#38bdf8" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">תקשורת אלחוטית RADWIN: עקרון Point-to-Point, כיוונון ו-RSSI</text>
+
+  <!-- Left Mast (Site A) -->
+  <g transform="translate(70, 75)">
+    <!-- Tower / Mast -->
+    <line x1="20" y1="210" x2="20" y2="40" stroke="#64748b" stroke-width="4" />
+    <line x1="5" y1="210" x2="35" y2="210" stroke="#64748b" stroke-width="4" />
+    <polygon points="10,210 20,40 30,210" fill="none" stroke="#475569" stroke-width="1.5" />
+    <!-- RADWIN Antenna ODU -->
+    <rect x="18" y="35" width="22" height="36" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+    <text x="29" y="30" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">יחידת ODU A</text>
+    <text x="29" y="85" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">אתר שאיבה / מאגר</text>
+  </g>
+
+  <!-- Right Mast (Site B) -->
+  <g transform="translate(630, 75)">
+    <!-- Tower -->
+    <line x1="20" y1="210" x2="20" y2="40" stroke="#64748b" stroke-width="4" />
+    <polygon points="10,210 20,40 30,210" fill="none" stroke="#475569" stroke-width="1.5" />
+    <!-- RADWIN Antenna ODU -->
+    <rect x="0" y="35" width="22" height="36" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+    <text x="11" y="30" fill="#38bdf8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">יחידת ODU B</text>
+    <text x="11" y="85" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">חדר בקרה ראשי</text>
+  </g>
+
+  <!-- Line of Sight (LOS) and Fresnel Zone -->
+  <g transform="translate(112, 75)">
+    <!-- Direct Line of Sight -->
+    <line x1="0" y1="53" x2="520" y2="53" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+    <!-- Fresnel Ellipse (Zone 1) -->
+    <ellipse cx="260" cy="53" rx="250" ry="42" fill="rgba(56, 189, 248, 0.08)" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="6,4" />
+    <text x="260" y="35" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">רדיוס פרנל (Fresnel Zone) - חייב להיות נקי ממכשולים (עצים, מבנים)</text>
+
+    <!-- Ground Profile -->
+    <path d="M -20,210 Q 150,195 260,180 Q 380,205 540,210" fill="none" stroke="#475569" stroke-width="2" />
+  </g>
+
+  <!-- Center RSSI Signal Gauge -->
+  <g transform="translate(250, 185)">
+    <rect x="0" y="0" width="260" height="95" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="130" y="22" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">מד עוצמת אות RSSI (כיוונון אנטנות)</text>
+    
+    <!-- Signal Bars -->
+    <rect x="30" y="38" width="200" height="18" rx="4" fill="#0f172a" />
+    <rect x="30" y="38" width="160" height="18" rx="4" fill="#10b981" />
+    <text x="130" y="52" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">-54 dBm (מצוין!)</text>
+
+    <text x="130" y="75" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">תחום תדרים: 5GHz (MIMO 2x2 קיטוב כפול H+V)</text>
+    <text x="130" y="88" fill="#94a3b8" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">קליטה גבולית: מתחת ל- -82 dBm | יחס אות לרעש SNR &gt; 25dB</text>
+  </g>
+
+  <!-- Bottom Strip -->
+  <rect x="25" y="325" width="710" height="55" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="720" y="347" fill="#38bdf8" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="end">עקרונות כיוונון (Alignment) אנטנות RADWIN:</text>
+  <text x="720" y="367" fill="#94a3b8" font-family="Arial, sans-serif" font-size="11" text-anchor="end">מכוונים עזרי אזימוט (אופקי) והגבהה (אנכי) לקבלת עוצמת RSSI מיטבית (ערך dBm קרוב יותר ל-0). חובה לוודא קו ראייה נקי (Line of Sight) ורדיוס פרנל פנוי.</text>
+</svg>

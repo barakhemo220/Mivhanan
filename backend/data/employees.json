@@ -1,0 +1,356 @@
+[
+  {
+    "id": "128704",
+    "name": "ניר אבוטבול",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מנהל מכשיריית אשלג ב'",
+    "level": 1,
+    "isAdmin": false,
+    "email": "128704@company.com",
+    "nextExamDate": null,
+    "scheduleNotes": "מבחן בוצע ב-25.10.2026 (ציון: 5%)",
+    "scheduleUpdatedAt": "2026-10-25T21:54:47.696Z"
+  },
+  {
+    "id": "123321",
+    "name": "מקסים מורוז",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "123321@company.com",
+    "nextExamDate": null,
+    "scheduleNotes": "מבחן בוצע ב-25.10.2026 (ציון: 0%)",
+    "scheduleUpdatedAt": "2026-10-25T21:28:28.258Z"
+  },
+  {
+    "id": "14403",
+    "name": "חביב אלבז",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "14403@company.com",
+    "nextExamDate": null,
+    "scheduleNotes": "מבחן בוצע ב-26.10.2026 (ציון: 0%)",
+    "scheduleUpdatedAt": "2026-10-26T04:34:16.137Z"
+  },
+  {
+    "id": "18171",
+    "name": "עדיאל מיוסט",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "18171@company.com"
+  },
+  {
+    "id": "130065",
+    "name": "טוהר בן מוחה",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "130065@company.com"
+  },
+  {
+    "id": "136777",
+    "name": "אדוארד רולוב",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "136777@company.com"
+  },
+  {
+    "id": "126387",
+    "name": "יניר אסייג",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "126387@company.com"
+  },
+  {
+    "id": "141794",
+    "name": "שלו אלקאיל",
+    "department": "מכשיריית אשלג ב'",
+    "role": "מכשירן אשלג ב'",
+    "level": 2,
+    "isAdmin": false,
+    "email": "141794@company.com"
+  },
+  {
+    "id": "6396",
+    "name": "רוני רוסבי",
+    "department": "מכשיריית ברום / כלור",
+    "role": "מנהל מכשיריית ברום / כלור",
+    "level": 3,
+    "isAdmin": false,
+    "email": "6396@company.com"
+  },
+  {
+    "id": "9285",
+    "name": "גולן יעקב",
+    "department": "מכשיריית ברום / כלור",
+    "role": "מכשירן ברום / כלור",
+    "level": 2,
+    "isAdmin": false,
+    "email": "9285@company.com"
+  },
+  {
+    "id": "10129",
+    "name": "אבי  מאור",
+    "department": "מכשיריית ברום / כלור",
+    "role": "מכשירן ברום / כלור",
+    "level": 2,
+    "isAdmin": false,
+    "email": "10129@company.com"
+  },
+  {
+    "id": "6039",
+    "name": "מיכאל מריאכין",
+    "department": "מכשיריית ברום / כלור",
+    "role": "מכשירן ברום / כלור",
+    "level": 2,
+    "isAdmin": false,
+    "email": "6039@company.com"
+  },
+  {
+    "id": "129109",
+    "name": "אריאל שקיר",
+    "department": "מכשיריית ברום / כלור",
+    "role": "מכשירן ברום / כלור",
+    "level": 2,
+    "isAdmin": false,
+    "email": "129109@company.com"
+  },
+  {
+    "id": "15153",
+    "name": "נסטור רויטר",
+    "department": "מכשיריית ברום / כלור",
+    "role": "מכשירן ברום / כלור",
+    "level": 2,
+    "isAdmin": false,
+    "email": "15153@company.com"
+  },
+  {
+    "id": "14279",
+    "name": "אלי עמר",
+    "department": "מכשיריית גלעון",
+    "role": "מנהל מכשיריית גלעון",
+    "level": 3,
+    "isAdmin": false,
+    "email": "14279@company.com"
+  },
+  {
+    "id": "12681",
+    "name": "משה דנינו",
+    "department": "מכשיריית גלעון",
+    "role": "מכשירן גלעון",
+    "level": 2,
+    "isAdmin": false,
+    "email": "12681@company.com"
+  },
+  {
+    "id": "12641",
+    "name": "אלדד בר לב",
+    "department": "מכשיריית גלעון",
+    "role": "מכשירן גלעון",
+    "level": 2,
+    "isAdmin": false,
+    "email": "12641@company.com"
+  },
+  {
+    "id": "132668",
+    "name": "מור עסל",
+    "department": "מכשיריית גלעון",
+    "role": "מכשירן גלעון",
+    "level": 2,
+    "isAdmin": false,
+    "email": "132668@company.com"
+  },
+  {
+    "id": "9430",
+    "name": "הרצל ביתן",
+    "department": "מכשיריית חומר גלם",
+    "role": "מנהל מכשיריית חומר גלם",
+    "level": 3,
+    "isAdmin": false,
+    "email": "9430@company.com"
+  },
+  {
+    "id": "8901",
+    "name": "אלי צדיקריו",
+    "department": "מכשיריית חומר גלם",
+    "role": "מכשירן חומר גלם",
+    "level": 2,
+    "isAdmin": false,
+    "email": "8901@company.com"
+  },
+  {
+    "id": "10128",
+    "name": "יואל צריקר",
+    "department": "מכשיריית חומר גלם",
+    "role": "מכשירן חומר גלם",
+    "level": 2,
+    "isAdmin": false,
+    "email": "10128@company.com"
+  },
+  {
+    "id": "17315",
+    "name": "עידן פיבקו",
+    "department": "מכשיריית חומר גלם",
+    "role": "מכשירן חומר גלם",
+    "level": 2,
+    "isAdmin": false,
+    "email": "17315@company.com"
+  },
+  {
+    "id": "134168",
+    "name": "ברק חמו",
+    "department": "מכשיריית חומר גלם",
+    "role": "מכשירן חומר גלם",
+    "level": 3,
+    "isAdmin": false,
+    "email": "134168@company.com",
+    "nextExamDate": null,
+    "scheduleNotes": "",
+    "scheduleUpdatedAt": "2026-10-25T20:28:46.337Z"
+  },
+  {
+    "id": "14570",
+    "name": "אשר זהר",
+    "department": "מכשיריית מלחים",
+    "role": "מנהל מכשיריית מלחים",
+    "level": 3,
+    "isAdmin": false,
+    "email": "14570@company.com"
+  },
+  {
+    "id": "8542",
+    "name": "יאן צייטלין",
+    "department": "מכשיריית מלחים",
+    "role": "מכשירן מלחים",
+    "level": 2,
+    "isAdmin": false,
+    "email": "8542@company.com"
+  },
+  {
+    "id": "18030",
+    "name": "תומר אפריאט",
+    "department": "מכשיריית מלחים",
+    "role": "מכשירן מלחים",
+    "level": 2,
+    "isAdmin": false,
+    "email": "18030@company.com"
+  },
+  {
+    "id": "14886",
+    "name": "יגאל פרחי",
+    "department": "מכשיריית מלחים",
+    "role": "מכשירן מלחים",
+    "level": 2,
+    "isAdmin": false,
+    "email": "14886@company.com"
+  },
+  {
+    "id": "6011",
+    "name": "רפי כהן",
+    "department": "מכשיריית מקלף",
+    "role": "מנהל מכשיריית מקלף",
+    "level": 3,
+    "isAdmin": false,
+    "email": "6011@company.com"
+  },
+  {
+    "id": "5100",
+    "name": "אייל ויצמן",
+    "department": "מכשיריית מקלף",
+    "role": "מכשירן מקלף",
+    "level": 2,
+    "isAdmin": false,
+    "email": "5100@company.com"
+  },
+  {
+    "id": "127506",
+    "name": "ניב ווקנין",
+    "department": "מכשיריית מקלף",
+    "role": "מכשירן מקלף",
+    "level": 2,
+    "isAdmin": false,
+    "email": "127506@company.com"
+  },
+  {
+    "id": "17408",
+    "name": "לירן אלוש",
+    "department": "מכשיריית מקלף",
+    "role": "מכשירן מקלף",
+    "level": 2,
+    "isAdmin": false,
+    "email": "17408@company.com"
+  },
+  {
+    "id": "140375",
+    "name": "אביאור אזולאי",
+    "department": "מכשיריית מקלף",
+    "role": "מכשירן מקלף",
+    "level": 2,
+    "isAdmin": false,
+    "email": "140375@company.com"
+  },
+  {
+    "id": "9712",
+    "name": "שלמה בלקר",
+    "department": "מכשיריית תחנת כוח",
+    "role": "מנהל מכשיריית תחנת כוח",
+    "level": 3,
+    "isAdmin": false,
+    "email": "9712@company.com"
+  },
+  {
+    "id": "9152",
+    "name": "מיכאל בלנקי",
+    "department": "מכשיריית תחנת כוח",
+    "role": "מכשירן תחנת כוח",
+    "level": 2,
+    "isAdmin": false,
+    "email": "9152@company.com"
+  },
+  {
+    "id": "127029",
+    "name": "אנדריי קוזין",
+    "department": "מכשיריית תחנת כוח",
+    "role": "מכשירן תחנת כוח",
+    "level": 2,
+    "isAdmin": false,
+    "email": "127029@company.com"
+  },
+  {
+    "id": "127599",
+    "name": "אור חזות",
+    "department": "מכשיריית תחנת כוח",
+    "role": "מכשירן תחנת כוח",
+    "level": 2,
+    "isAdmin": false,
+    "email": "127599@company.com"
+  },
+  {
+    "id": "14359",
+    "name": "שלום צרפתי",
+    "department": "מכשיריית תחנת כוח",
+    "role": "מכשירן תחנת כוח",
+    "level": 2,
+    "isAdmin": false,
+    "email": "14359@company.com"
+  },
+  {
+    "id": "9999",
+    "name": "מנהל מערכת",
+    "department": "הנהלת מכשור ובקרה",
+    "role": "מנהל מערכת ראשי (Admin)",
+    "level": 3,
+    "isAdmin": true,
+    "email": "admin@company.com"
+  }
+]

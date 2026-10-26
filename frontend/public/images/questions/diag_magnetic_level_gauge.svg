@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="100%">
+  <rect width="700" height="380" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Title Badge -->
+  <rect x="25" y="18" width="340" height="32" rx="7" fill="#f8fafc" stroke="#d97706" stroke-width="1.5" />
+  <text x="195" y="39" fill="#0f172a" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">מד גובה מגנטי (Magnetic Level Indicator) - מצוף ודגלים צבעוניים</text>
+
+  <!-- Diagram Graphic Elements -->
+  
+        <g transform="translate(80, 55)">
+          <!-- Bypass Chamber Pipe -->
+          <rect x="80" y="20" width="70" height="230" rx="10" fill="#e2e8f0" stroke="#475569" stroke-width="3" />
+          
+          <!-- Magnetic Float Inside Chamber -->
+          <rect x="86" y="120" width="58" height="60" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="2" />
+          <text x="115" y="155" fill="#ef4444" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">מצוף N-S</text>
+
+          <!-- Fluid Level -->
+          <rect x="83" y="145" width="64" height="102" rx="6" fill="#0284c7" opacity="0.6" />
+
+          <!-- Indicator Rail on Side with Bicolor Flappers -->
+          <rect x="170" y="30" width="25" height="210" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.5" />
+          
+          <!-- White Flappers (Gas above float) -->
+          <rect x="173" y="35" width="19" height="105" fill="#ffffff" />
+          <g stroke="#94a3b8">
+            <line x1="173" y1="50" x2="192" y2="50" /><line x1="173" y1="65" x2="192" y2="65" />
+            <line x1="173" y1="80" x2="192" y2="80" /><line x1="173" y1="95" x2="192" y2="95" />
+            <line x1="173" y1="110" x2="192" y2="110" /><line x1="173" y1="125" x2="192" y2="125" />
+          </g>
+
+          <!-- Red/Yellow Flappers (Flipped by magnet below float) -->
+          <rect x="173" y="140" width="19" height="95" fill="#ef4444" />
+          <g stroke="#ffffff">
+            <line x1="173" y1="155" x2="192" y2="155" /><line x1="173" y1="170" x2="192" y2="170" />
+            <line x1="173" y1="185" x2="192" y2="185" /><line x1="173" y1="200" x2="192" y2="200" />
+            <line x1="173" y1="215" x2="192" y2="215" />
+          </g>
+
+          <text x="210" y="80" fill="#64748b" font-family="Arial, sans-serif" font-size="10">דגלים לבנים (ריק / גז)</text>
+          <text x="210" y="175" fill="#ef4444" font-family="Arial, sans-serif" font-size="10" font-weight="bold">דגלים אדומים (מלא בנוזל)</text>
+        </g>
+
+        <!-- Right: Maintenance & Benefits -->
+        <g transform="translate(390, 60)">
+          <rect x="0" y="0" width="270" height="245" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="135" y="25" fill="#0f172a" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">יתרונות בטיחות ואחזקה</text>
+
+          <rect x="15" y="45" width="240" height="50" rx="5" fill="#ecfdf5" />
+          <text x="135" y="66" fill="#047857" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">ללא זכוכית תחת לחץ (No Glass)</text>
+          <text x="135" y="82" fill="#047857" font-family="Arial, sans-serif" font-size="9" text-anchor="middle">מונע לחלוטין סכנת פריצת חומרים מסוכנים</text>
+
+          <text x="15" y="120" fill="#0f172a" font-family="Arial, sans-serif" font-size="10" font-weight="bold">היבטי אחזקה קריטיים:</text>
+          <text x="15" y="140" fill="#475569" font-family="Arial, sans-serif" font-size="9">• שקיעת בוצה / חלקיקים מגנטיים בתחתית</text>
+          <text x="15" y="158" fill="#475569" font-family="Arial, sans-serif" font-size="9">• שסתום ניקוז תחתון לשטיפה תקופתית (Blowdown)</text>
+          <text x="15" y="176" fill="#475569" font-family="Arial, sans-serif" font-size="9">• התאמת משקל סגולי של המצוף (Specific Gravity)</text>
+          <text x="15" y="194" fill="#475569" font-family="Arial, sans-serif" font-size="9">• אפשרות הוספת משדר מגנטוסטריקטיבי (4-20mA)</text>
+        </g>
+        
+
+  <!-- Footer Banner -->
+  <rect x="25" y="325" width="650" height="40" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+  <text x="350" y="349" fill="#475569" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">מד מפלס מגנטי מפריד לחלוטין את הנוזל הרעיל/בלחץ מלוח התצוגה בעזרת מצוף מגנטי ודגלים מסתובבים</text>
+</svg>
