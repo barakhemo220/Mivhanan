@@ -2,7 +2,7 @@
   {
     "id": "result-1793001032608",
     "employeeId": "emp_23",
-    "employeeName": "ברק ח'",
+    "employeeName": "ברק ח",
     "department": "מכשיריית חומר גלם",
     "submittedAt": "2026-10-26T07:50:32.608Z",
     "score": 5,
@@ -368,7 +368,7 @@
   {
     "id": "result-1792989256129",
     "employeeId": "emp_03",
-    "employeeName": "חביב א'",
+    "employeeName": "חביב א",
     "department": "מכשיריית אשלג ב'",
     "submittedAt": "2026-10-26T04:34:16.129Z",
     "score": 0,
@@ -734,7 +734,7 @@
   {
     "id": "result-1792965287684",
     "employeeId": "emp_01",
-    "employeeName": "ניר א'",
+    "employeeName": "ניר א",
     "department": "מכשיריית אשלג ב'",
     "submittedAt": "2026-10-25T21:54:47.684Z",
     "score": 5,

@@ -310,12 +310,14 @@ app.post('/api/auth/login', (req, res) => {
     const empName = normalizeHebrew(emp.name);
     const empId = String(emp.id).trim().toLowerCase();
 
-    // Flexible username match (e.g. "ניר א'", "ניר א", "ברק ח'", "ברק א'")
+    // Flexible username match (e.g. "ניר א", "ניר א'", "ברק ח", "ברק א", "עדי מ", "עדיאל מ", "אדי ר", "אדוארד ר")
     const userMatches = (
       empUser === normUser ||
       empName === normUser ||
       empId === cleanUser ||
-      (normUser === 'ברק א' && empName === 'ברק ח')
+      (normUser === 'ברק א' && empName === 'ברק ח') ||
+      (normUser === 'עדיאל מ' && empName === 'עדי מ') ||
+      (normUser === 'אדוארד ר' && empName === 'אדי ר')
     );
 
     // Secure password verification
