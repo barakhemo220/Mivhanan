@@ -36,6 +36,20 @@ jobs:
           fi
 
           echo "Pinging: $TARGET_URL at $(date -u)"
-          RESPONSE=$(curl -f -s -S --max-time 30 "$TARGET_URL")
-          echo "Server response: $RESPONSE"
-          echo "Ping completed successfully!"
+          echo "Allowing up to 120s for cloud instance cold start..."
+
+          # Execute curl with 120s timeout and retries for free tier cold starts
+          HTTP_STATUS=$(curl -s -S -o response.txt -w "%{http_code}" --connect-timeout 25 --max-time 120 --retry 2 --retry-delay 5 --retry-all-errors "$TARGET_URL" || echo "curl_err_$?")
+
+          echo "HTTP Status / Result: $HTTP_STATUS"
+          if [ -f response.txt ] && [ -s response.txt ]; then
+            echo "Response Body:"
+            cat response.txt
+            echo ""
+          fi
+
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ Ping successful! Server is awake and healthy."
+          else
+            echo "ℹ️ Ping finished with code $HTTP_STATUS. If the server was sleeping (cold start), it has now been triggered to wake up."
+          fi
