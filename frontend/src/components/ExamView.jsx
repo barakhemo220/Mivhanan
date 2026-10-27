@@ -18,7 +18,10 @@ import {
   RefreshCw,
   Clock,
   ShieldAlert,
-  Info
+  Info,
+  GraduationCap,
+  Award,
+  FileText
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import ConfirmSubmitModal from './ConfirmSubmitModal';
@@ -34,6 +37,11 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   
+  // Practice Mode & Start Lobby State
+  const [isPractice, setIsPractice] = useState(false);
+  const [examStarted, setExamStarted] = useState(false);
+  const [loadingPractice, setLoadingPractice] = useState(false);
+
   // Schedule Restriction & Eligibility State
   const [restriction, setRestriction] = useState(null);
   const [scheduleInfo, setScheduleInfo] = useState(null);
@@ -70,13 +78,14 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
         if (data.canTakeExam === false || data.reason === 'NO_SCHEDULED_EXAM' || data.reason === 'TOO_EARLY') {
           setRestriction(data);
           setQuestions([]);
+          setExamStarted(false);
           if (onActiveExamRunning) onActiveExamRunning(false);
           return;
         }
         throw new Error(data.message || 'שגיאה בטעינת המבחן');
       }
 
-      // Valid & Eligible: Exam can proceed
+      // Valid & Eligible: Exam questions loaded, ready in pre-exam lobby
       setRestriction(null);
       setScheduleInfo({
         nextExamDate: data.nextExamDate,
@@ -85,7 +94,9 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
         diffDays: data.diffDays
       });
       setQuestions(data.questions);
-      if (onActiveExamRunning) onActiveExamRunning(true);
+      setExamStarted(false);
+      setIsPractice(false);
+      if (onActiveExamRunning) onActiveExamRunning(false);
 
       // Check if there are saved draft answers in localStorage
       const storageKey = `mivhanan_answers_${user.id}_${data.examId}`;
@@ -103,6 +114,44 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     } finally {
       setLoading(false);
       setIsRefreshingStatus(false);
+    }
+  };
+
+  // Start Official Scheduled Exam
+  const startOfficialExam = () => {
+    setIsPractice(false);
+    setExamStarted(true);
+    setCurrentIndex(0);
+    if (onActiveExamRunning) onActiveExamRunning(true);
+  };
+
+  // Start Practice Exam (Scores are not recorded anywhere)
+  const startPracticeExam = async () => {
+    setLoadingPractice(true);
+    setError('');
+    try {
+      const userLevel = user?.level || 2;
+      const authHeaders = user?.token ? { 'Authorization': `Bearer ${user.token}` } : {};
+      const res = await fetch(`/api/exam/questions?mode=practice&count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
+        headers: authHeaders
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'שגיאה בטעינת מצב תרגול');
+      }
+
+      setQuestions(data.questions);
+      setRestriction(null);
+      setIsPractice(true);
+      setExamStarted(true);
+      setCurrentIndex(0);
+      setAnswers({});
+      setFlagged({});
+      if (onActiveExamRunning) onActiveExamRunning(true);
+    } catch (err) {
+      alert(err.message || 'שגיאה בטעינת מצב תרגול');
+    } finally {
+      setLoadingPractice(false);
     }
   };
 
@@ -166,6 +215,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
           employeeId: user.id,
           employeeName: user.name,
           department: user.department,
+          isPractice: Boolean(isPractice),
           answers,
           questionIds: questions.map(q => q.id),
           totalQuestions: questions.length,
@@ -182,7 +232,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       localStorage.removeItem(`mivhanan_draft_${user.id}`);
       setShowConfirmModal(false);
       if (onActiveExamRunning) onActiveExamRunning(false);
-      onExamComplete(data);
+      onExamComplete({ ...data, isPractice });
     } catch (err) {
       alert(err.message || 'שגיאה בהגשת המבחן');
     } finally {
@@ -259,8 +309,20 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
           <div className="schedule-actions-row">
             <button 
               type="button" 
+              id="btn-start-practice"
+              className="btn btn-primary btn-practice" 
+              onClick={startPracticeExam}
+              disabled={loadingPractice}
+              title="כניסה למבחן במצב תרגול - לקבלת ציון ותחקיר ללא רישום ביומן"
+            >
+              <GraduationCap size={18} />
+              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול'}</span>
+            </button>
+
+            <button 
+              type="button" 
               id="btn-refresh-schedule-status"
-              className="btn btn-primary" 
+              className="btn btn-secondary" 
               onClick={() => fetchExamQuestions(true)}
               disabled={isRefreshingStatus}
             >
@@ -343,8 +405,20 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
           <div className="schedule-actions-row">
             <button 
               type="button" 
+              id="btn-start-practice-early"
+              className="btn btn-primary btn-practice" 
+              onClick={startPracticeExam}
+              disabled={loadingPractice}
+              title="כניסה למבחן במצב תרגול - לקבלת ציון ותחקיר ללא רישום ביומן"
+            >
+              <GraduationCap size={18} />
+              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול'}</span>
+            </button>
+
+            <button 
+              type="button" 
               id="btn-refresh-schedule-early"
-              className="btn btn-primary" 
+              className="btn btn-secondary" 
               onClick={() => fetchExamQuestions(true)}
               disabled={isRefreshingStatus}
             >
@@ -356,6 +430,102 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               <button 
                 type="button" 
                 id="btn-logout-early"
+                className="btn btn-secondary" 
+                onClick={onLogout}
+              >
+                <LogOut size={16} />
+                <span>יציאה מהמערכת</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // Pre-Exam Lobby: Scheduled Exam Ready, User Chooses Start or Practice
+  // -------------------------------------------------------------
+  if (!examStarted && !restriction && questions.length > 0) {
+    return (
+      <div className="schedule-restriction-container fade-in" id="exam-welcome-lobby">
+        <div className="schedule-card-wrapper glass-card">
+          <div className="schedule-badge-icon badge-lobby">
+            <Award size={48} className="icon-lobby" />
+          </div>
+
+          <h1 className="schedule-title">מבחן תקופתי במכשור ובקרה</h1>
+          <p className="schedule-subtitle">
+            שלום <strong>{user?.name}</strong>, נקבע עבורך מועד בחינה פעיל במערכת. ודא את פרטיך ובחר כיצד להמשיך:
+          </p>
+
+          <div className="employee-info-box">
+            <div className="info-chip">
+              <span className="info-label">עובד:</span>
+              <span className="info-val">{user?.name}</span>
+            </div>
+            <div className="info-chip">
+              <span className="info-label">מספר אישי:</span>
+              <span className="info-val">{user?.id}</span>
+            </div>
+            <div className="info-chip">
+              <span className="info-label">מחלקה:</span>
+              <span className="info-val">{user?.department}</span>
+            </div>
+            <div className="info-chip">
+              <span className="info-label">רמת מבחן:</span>
+              <span className="info-val">
+                {user?.level === 3 ? 'רמה 3 (מתקדם)' : user?.level === 1 ? 'רמה 1 (מתחיל)' : 'רמה 2 (בינוני)'}
+              </span>
+            </div>
+            {scheduleInfo?.targetDateFormatted && (
+              <div className="info-chip">
+                <span className="info-label">מועד מתוזמן:</span>
+                <span className={`info-val ${scheduleInfo.isOverdue ? 'status-blocked-tag' : 'status-open-tag'}`}>
+                  {scheduleInfo.isOverdue ? `באיחור (${scheduleInfo.targetDateFormatted})` : scheduleInfo.targetDateFormatted}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="schedule-notice-box notice-info">
+            <Info size={20} className="notice-icon" />
+            <div className="notice-content">
+              <strong>מבנה המבחן והנחיות</strong>
+              <span>
+                המבחן כולל <strong>{questions.length} שאלות רב-ברירה</strong> ותרשימים טכניים.
+                ציון המעבר הינו <strong>70%</strong>. תוכל לגשת ישירות למבחן הרשמי, או לבצע תרגול מקדים ללא רישום ציון.
+              </span>
+            </div>
+          </div>
+
+          <div className="schedule-actions-row">
+            <button 
+              type="button" 
+              id="btn-start-official-exam"
+              className="btn btn-primary btn-start-exam" 
+              onClick={startOfficialExam}
+            >
+              <CheckCircle2 size={18} />
+              <span>התחל מבחן</span>
+            </button>
+
+            <button 
+              type="button" 
+              id="btn-start-practice-lobby"
+              className="btn btn-secondary btn-practice" 
+              onClick={startPracticeExam}
+              disabled={loadingPractice}
+              title="ביצוע תרגול מקדים - הציון לא נרשם במערכת"
+            >
+              <GraduationCap size={18} />
+              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול מקדים (ללא ציון)'}</span>
+            </button>
+
+            {onLogout && (
+              <button 
+                type="button" 
+                id="btn-logout-lobby"
                 className="btn btn-secondary" 
                 onClick={onLogout}
               >
@@ -392,7 +562,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             <span className={`exam-level-pill level-${user?.level || 2}`}>
               רמת מבחן: {user?.level === 3 ? 'רמה 3 - מתקדם' : user?.level === 1 ? 'רמה 1 - מתחיל' : 'רמה 2 - בינוני'}
             </span>
-            {scheduleInfo?.targetDateFormatted && (
+            {isPractice ? (
+              <span className="exam-tag practice-pill">
+                <GraduationCap size={14} />
+                <span>מצב תרגול (הציון לא נרשם)</span>
+              </span>
+            ) : scheduleInfo?.targetDateFormatted ? (
               <span className={`exam-tag schedule-pill ${scheduleInfo.isOverdue ? 'schedule-pill-overdue' : 'schedule-pill-valid'}`}>
                 <CalendarCheck size={14} />
                 <span>
@@ -401,7 +576,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
                     : `מועד מתוזמן: ${scheduleInfo.targetDateFormatted}`}
                 </span>
               </span>
-            )}
+            ) : null}
             <span className="exam-tag topic-badge">
               {currentQ.topic || 'מכשור ובקרה'}
             </span>

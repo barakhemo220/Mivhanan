@@ -15,7 +15,8 @@ import {
   FileCheck,
   LogOut,
   CalendarCheck,
-  FileDown
+  FileDown,
+  GraduationCap
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import { generateAndSaveExamPdf } from '../utils/pdfGenerator';
@@ -26,7 +27,7 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
   const [lightboxImage, setLightboxImage] = useState(null);
   const [filter, setFilter] = useState('all'); // all, incorrect, correct
   const [expandedId, setExpandedId] = useState(null);
-  const [pdfStatus, setPdfStatus] = useState('generating'); // 'generating' | 'saved' | 'error'
+  const [pdfStatus, setPdfStatus] = useState(resultData?.isPractice ? 'practice' : 'generating'); // 'generating' | 'saved' | 'error' | 'practice'
   const [savedPdfFilename, setSavedPdfFilename] = useState('');
 
   const { score, correctCount, totalQuestions, status, timeSpentSeconds, review } = resultData;
@@ -44,8 +45,13 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
     }
   }, [isPassed]);
 
-  // Automatic PDF generation & saving on finish exam
+  // Automatic PDF generation & saving on finish exam (skipped in practice mode)
   useEffect(() => {
+    if (resultData?.isPractice) {
+      setPdfStatus('practice');
+      return;
+    }
+
     let isMounted = true;
     async function autoSavePdf() {
       try {
@@ -74,7 +80,7 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
 
     autoSavePdf();
     return () => { isMounted = false; };
-  }, []);
+  }, [resultData?.isPractice]);
 
   const formatTime = (secs) => {
     if (!secs) return 'ללא תיעוד';
@@ -99,16 +105,27 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
         <hr />
       </div>
 
-      {/* Auto Save PDF Status Banner */}
+      {/* Auto Save PDF Status Banner / Practice Banner */}
       <div className="pdf-auto-save-wrapper no-print">
-        {pdfStatus === 'generating' && (
+        {resultData?.isPractice && (
+          <div className="pdf-auto-save-banner banner-practice">
+            <div className="banner-icon-text">
+              <GraduationCap size={20} className="text-cyan" />
+              <span>
+                <strong>מצב תרגול עצמי (אימון)</strong> — הציון והתשובות שקיבלת נועדו ללמידה ותרגול אישי בלבד. תוצאות אלו <strong>לא נרשמו במערכת</strong> ולא משפיעות על מעקב המבחנים הרשמי שלך.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {!resultData?.isPractice && pdfStatus === 'generating' && (
           <div className="pdf-auto-save-banner banner-generating">
             <div className="spinner-mini"></div>
             <span>מייצר ושומר קובץ PDF של תוצאות המבחן באופן אוטומטי...</span>
           </div>
         )}
 
-        {pdfStatus === 'saved' && (
+        {!resultData?.isPractice && pdfStatus === 'saved' && (
           <div className="pdf-auto-save-banner banner-saved">
             <div className="banner-icon-text">
               <CheckCircle2 size={18} className="text-emerald" />
@@ -149,7 +166,7 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
               {isPassed ? (
                 <>
                   <Award size={18} />
-                  <span>עבר בהצלחה!</span>
+                  <span>{resultData?.isPractice ? 'עבר בתרגול!' : 'עבר בהצלחה!'}</span>
                 </>
               ) : (
                 <>
@@ -162,12 +179,18 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
 
           <div className="score-details-pane">
             <h1 className="score-title">
-              {isPassed ? `כל הכבוד, ${user.name}!` : `סיום מבחן, ${user.name}`}
+              {resultData?.isPractice
+                ? (isPassed ? `כל הכבוד בתרגול, ${user.name}!` : `סיום תרגול, ${user.name}`)
+                : (isPassed ? `כל הכבוד, ${user.name}!` : `סיום מבחן, ${user.name}`)}
             </h1>
             <p className="score-subtitle">
-              {isPassed
-                ? 'עברת בהצלחה את המבחן התקופתי במכשור ובקרה. התוצאות נשמרו בתיק ההדרכה שלך.'
-                : 'ציון המעבר הינו 70%. מומלץ לעבור על התחקיר המקצועי למטה, ללמוד את ההסברים ולגשת למבחן חוזר.'}
+              {resultData?.isPractice
+                ? (isPassed 
+                    ? 'השגת ציון עובר בתרגול! התוצאה לא נרשמת ביומן. תוכל לעבור על התחקיר המקצועי כדי לחדד דקויות נוספות.'
+                    : 'ציון המעבר הינו 70%. זהו תרגול בלבד והציון לא נרשם. עבור על התחקיר המקצועי למטה כדי ללמוד את התשובות הנכונות.')
+                : (isPassed
+                    ? 'עברת בהצלחה את המבחן התקופתי במכשור ובקרה. התוצאות נשמרו בתיק ההדרכה שלך.'
+                    : 'ציון המעבר הינו 70%. מומלץ לעבור על התחקיר המקצועי למטה, ללמוד את ההסברים ולגשת למבחן חוזר.')}
             </p>
 
             {/* Metrics Chips */}
@@ -197,17 +220,47 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
               </div>
             </div>
 
-            {/* Completion Notice for Scheduled Exam */}
-            {!user?.isAdmin && (
+            {/* Completion Notice for Scheduled Exam vs Practice */}
+            {!user?.isAdmin && !resultData?.isPractice && (
               <div className="exam-completion-notice">
                 <CalendarCheck size={18} className="completion-icon" />
                 <span>המבחן התקופתי הושלם ונרשם בהצלחה ביומן הציונים. המועד הבא ייקבע על ידי מנהל המערכת (מחזור של 4 חודשים).</span>
               </div>
             )}
 
+            {!user?.isAdmin && resultData?.isPractice && (
+              <div className="exam-completion-notice practice-completion-notice">
+                <GraduationCap size={18} className="completion-icon" />
+                <span>התרגול הסתיים בהצלחה. שים לב: ציון זה נועד לתרגול אישי בלבד ולא נרשם במערכת הניהול.</span>
+              </div>
+            )}
+
             {/* Actions Bar */}
             <div className="score-actions-row no-print">
-              {user?.isAdmin ? (
+              {resultData?.isPractice ? (
+                <>
+                  <button 
+                    type="button" 
+                    id="btn-retake-practice"
+                    className="btn btn-primary"
+                    onClick={onRetakeExam}
+                    title="חזרה למסך הראשי או ביצוע תרגול נוסף"
+                  >
+                    <RotateCcw size={16} />
+                    <span>חזרה למסך הראשי / תרגול נוסף</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    id="btn-finish-practice-logout"
+                    className="btn btn-secondary"
+                    onClick={onLogout}
+                  >
+                    <LogOut size={16} />
+                    <span>יציאה מהמערכת</span>
+                  </button>
+                </>
+              ) : user?.isAdmin ? (
                 <button 
                   type="button" 
                   id="btn-retake-exam"

@@ -594,10 +594,11 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
     ? (req.query.employeeId || req.user.id) 
     : req.user.id;
 
-  // Strict enforcement: employee must have a valid scheduled exam within the 30-day window
+  // Strict enforcement: employee must have a valid scheduled exam within the 30-day window (bypassed for practice mode)
+  const isPractice = req.query.mode === 'practice' || req.query.practice === 'true';
   const employees = readJson(EMPLOYEES_FILE, []);
   const emp = employees.find(e => String(e.id).trim() === String(targetEmployeeId).trim());
-  if (emp && !emp.isAdmin) {
+  if (!isPractice && emp && !emp.isAdmin) {
     const eligibility = checkExamEligibility(emp);
     if (!eligibility.canTakeExam) {
       return res.status(403).json({
@@ -645,10 +646,15 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
 
   res.json({
     success: true,
+    isPractice,
     examId,
     examLevel: level || 2,
     totalQuestions: clientQuestions.length,
-    questions: clientQuestions
+    questions: clientQuestions,
+    ...(emp ? {
+      nextExamDate: emp.nextExamDate || null,
+      targetDateFormatted: emp.nextExamDate ? formatDateHe(emp.nextExamDate) : null
+    } : {})
   });
 });
 
@@ -707,6 +713,26 @@ app.post('/api/exam/submit', authenticateToken, (req, res) => {
 
   const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
   const passed = score >= 70; // 70% passing threshold
+
+  const isPractice = Boolean(req.body.isPractice);
+
+  // Practice mode: Return full score and technical review, but DO NOT save to history or clear employee schedule
+  if (isPractice) {
+    return res.json({
+      success: true,
+      isPractice: true,
+      resultId: `practice-${Date.now()}`,
+      score,
+      correctCount,
+      totalQuestions,
+      status: passed ? 'passed' : 'failed',
+      timeSpentSeconds: timeSpentSeconds || 0,
+      submittedAt: new Date().toISOString(),
+      review,
+      hasPdf: false,
+      pdfUrl: null
+    });
+  }
 
   const resultId = `result-${Date.now()}`;
   const resultRecord = {

@@ -3449,6 +3449,13 @@ tr.row-updated-highlight {
   box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.2);
 }
 
+.schedule-badge-icon.badge-lobby {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #059669;
+  border: 2px solid #6ee7b7;
+  box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.25);
+}
+
 .schedule-title {
   font-size: 1.85rem;
   font-weight: 800;
@@ -3506,6 +3513,17 @@ tr.row-updated-highlight {
   font-size: 0.8rem !important;
   font-weight: 800 !important;
   border: 1px solid #fecaca;
+}
+
+.status-open-tag {
+  display: inline-block;
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  border: 1px solid #a7f3d0;
 }
 
 /* Countdown & Window Cards Grid */
@@ -3689,6 +3707,63 @@ tr.row-updated-highlight {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Practice Mode and Lobby Buttons & Badges */
+.btn-start-exam {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+  font-weight: 800 !important;
+  padding: 0.65rem 1.4rem !important;
+  font-size: 0.98rem !important;
+}
+
+.btn-start-exam:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45) !important;
+}
+
+.btn-practice {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+.btn-practice:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(14, 165, 233, 0.4) !important;
+}
+
+.exam-tag.practice-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  background: #f0fdfa;
+  color: #0d9488;
+  border: 1px solid #99f6e4;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
+}
+
+.pdf-auto-save-banner.banner-practice {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
+}
+
+.practice-completion-notice {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+.practice-completion-notice .completion-icon {
+  color: #0d9488 !important;
 }
 
 /* ==========================================================================
