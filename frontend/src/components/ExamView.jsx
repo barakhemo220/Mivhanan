@@ -71,7 +71,13 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       const res = await fetch(`/api/exam/questions?count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
         headers: authHeaders
       });
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error('שגיאה בפענוח תשובת השרת');
+      }
 
       if (!res.ok || !data.success) {
         // Schedule Restriction: No scheduled exam or too early
@@ -135,7 +141,14 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       const res = await fetch(`/api/exam/questions?mode=practice&count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
         headers: authHeaders
       });
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error('שגיאה בפענוח תשובת השרת במצב תרגול');
+      }
+      
       if (!res.ok || !data.success) {
         throw new Error(data.message || 'שגיאה בטעינת מצב תרגול');
       }

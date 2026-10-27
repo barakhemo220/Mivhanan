@@ -310,6 +310,27 @@ function shuffleArray(array) {
   return arr;
 }
 
+function formatDateHe(dateInput) {
+  if (!dateInput) return '';
+  try {
+    const parts = String(dateInput).trim().split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+      return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    const d = new Date(dateInput);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    return String(dateInput);
+  } catch (e) {
+    return String(dateInput);
+  }
+}
+
 // -------------------------------------------------------------
 // Helper: Check Exam Eligibility based on 4-Month Schedule Window
 // -------------------------------------------------------------
@@ -598,9 +619,10 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
   const isPractice = req.query.mode === 'practice' || req.query.practice === 'true';
   const employees = readJson(EMPLOYEES_FILE, []);
   const emp = employees.find(e => String(e.id).trim() === String(targetEmployeeId).trim());
-  if (!isPractice && emp && !emp.isAdmin) {
-    const eligibility = checkExamEligibility(emp);
-    if (!eligibility.canTakeExam) {
+  let eligibility = null;
+  if (emp) {
+    eligibility = checkExamEligibility(emp);
+    if (!isPractice && !emp.isAdmin && !eligibility.canTakeExam) {
       return res.status(403).json({
         success: false,
         ...eligibility
@@ -651,10 +673,15 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
     examLevel: level || 2,
     totalQuestions: clientQuestions.length,
     questions: clientQuestions,
-    ...(emp ? {
+    ...(eligibility ? {
+      nextExamDate: eligibility.nextExamDate || null,
+      targetDateFormatted: eligibility.targetDateFormatted || (emp?.nextExamDate ? formatDateHe(emp.nextExamDate) : null),
+      isOverdue: Boolean(eligibility.isOverdue),
+      diffDays: eligibility.diffDays || 0
+    } : (emp ? {
       nextExamDate: emp.nextExamDate || null,
       targetDateFormatted: emp.nextExamDate ? formatDateHe(emp.nextExamDate) : null
-    } : {})
+    } : {}))
   });
 });
 
