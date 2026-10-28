@@ -77,28 +77,49 @@ export default function SavedExamModal({ result, onClose }) {
       await generateAndSaveExamPdf(examData, { autoDownload: true, uploadToServer: true });
     } catch (err) {
       console.error('PDF generation error:', err);
-      // Fallback
+      // Fallback via Authorization header (avoids exposing JWT in URL)
       let token = null;
       try {
         const saved = sessionStorage.getItem('mivhanan_user');
         token = saved ? JSON.parse(saved)?.token : null;
       } catch {}
-      const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-      window.open(`/api/results/${examData.id}/pdf${tokenParam}`, '_blank');
+      try {
+        const res = await fetch(`/api/results/${examData.id}/pdf`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!res.ok) throw new Error('שגיאה בפתיחת קובץ ה-PDF');
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      } catch (fallbackErr) {
+        console.error('PDF fallback error:', fallbackErr);
+      }
     } finally {
       setIsExportingPdf(false);
     }
   };
 
-  const handleOpenPrintable = () => {
+  const handleOpenPrintable = async () => {
     if (!examData?.id) return;
     let token = null;
     try {
       const saved = sessionStorage.getItem('mivhanan_user');
       token = saved ? JSON.parse(saved)?.token : null;
     } catch {}
-    const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
-    window.open(`/api/results/${examData.id}/report?print=1${tokenParam}`, '_blank');
+    try {
+      const res = await fetch(`/api/results/${examData.id}/report?print=1`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error('שגיאה בפתיחת דוח ההדפסה');
+      const htmlText = await res.text();
+      const blob = new Blob([htmlText], { type: 'text/html;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (err) {
+      console.error('Printable report error:', err);
+    }
   };
 
   if (!result) return null;

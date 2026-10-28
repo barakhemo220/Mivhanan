@@ -46,7 +46,7 @@ async function runAnonymization() {
         id: 'admin',
         name: 'מנהל מערכת',
         username: 'מנהל מערכת',
-        password: process.env.ADMIN_PASSWORD || 'Hanan4343!',
+        password: process.env.ADMIN_PASSWORD || '',
         department: emp.department || 'הנהלת מכשור ובקרה',
         role: emp.role || 'מנהל מערכת ראשי (Admin)',
         level: emp.level || 3,

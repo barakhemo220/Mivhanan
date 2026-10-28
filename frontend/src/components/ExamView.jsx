@@ -30,6 +30,7 @@ const OPTION_LETTERS = ['א', 'ב', 'ג', 'ד'];
 
 export default function ExamView({ user, onExamComplete, examStartTime, onLogout, onActiveExamRunning }) {
   const [questions, setQuestions] = useState([]);
+  const [examId, setExamId] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({}); // { [qId]: selectedOptionIndex }
   const [flagged, setFlagged] = useState({}); // { [qId]: boolean }
@@ -100,6 +101,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
         diffDays: data.diffDays
       });
       setQuestions(data.questions);
+      setExamId(data.examId || null);
       setExamStarted(false);
       setIsPractice(false);
       if (onActiveExamRunning) onActiveExamRunning(false);
@@ -154,6 +156,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       }
 
       setQuestions(data.questions);
+      setExamId(data.examId || null);
       setRestriction(null);
       setIsPractice(true);
       setExamStarted(true);
@@ -225,6 +228,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
           ...(user?.token ? { 'Authorization': `Bearer ${user.token}` } : {})
         },
         body: JSON.stringify({
+          examId,
           employeeId: user.id,
           employeeName: user.name,
           department: user.department,

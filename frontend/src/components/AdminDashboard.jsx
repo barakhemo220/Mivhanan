@@ -197,8 +197,49 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
     }
   };
 
+  const handleAuthenticatedDownload = async (url, fallbackFilename) => {
+    try {
+      const res = await authFetch(url);
+      if (!res.ok) {
+        throw new Error('שגיאה בהורדת הקובץ מהשרת');
+      }
+      const disposition = res.headers.get('content-disposition');
+      let filename = fallbackFilename;
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename="?([^";]+)"?/i);
+        if (match && match[1]) filename = match[1];
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (err) {
+      showToast(err.message || 'שגיאה בהורדת הקובץ', 'error');
+    }
+  };
+
+  const handleOpenAuthenticatedPdf = async (resultId) => {
+    try {
+      const res = await authFetch(`/api/results/${resultId}/pdf`);
+      if (!res.ok) {
+        throw new Error('שגיאה בפתיחת קובץ ה-PDF');
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (err) {
+      showToast(err.message || 'שגיאה בפתיחת קובץ ה-PDF', 'error');
+    }
+  };
+
   const handleExportCsv = () => {
-    window.location.href = `/api/admin/export-csv?token=${encodeURIComponent(getAuthToken())}`;
+    handleAuthenticatedDownload('/api/admin/export-csv', 'mivhanan_results.csv');
   };
 
   // Smart client-side Image Auto-Resize & Format Optimization
@@ -455,9 +496,24 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
 
   const generateRandomPassword = () => {
     const prefixes = ['Miv', 'Sec', 'Aut', 'Pro', 'Con', 'Saf', 'Tek', 'Ctl'];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const rndNum = Math.floor(1000 + Math.random() * 8999);
-    return `${prefix}!${rndNum}#`;
+    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const symbols = '!@#$%&*';
+    const randValues = new Uint32Array(7);
+    if (window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(randValues);
+    } else {
+      for (let i = 0; i < randValues.length; i++) {
+        randValues[i] = Math.floor(Math.random() * 0xffffffff);
+      }
+    }
+    const prefix = prefixes[randValues[0] % prefixes.length];
+    const sym1 = symbols[randValues[1] % symbols.length];
+    const sym2 = symbols[randValues[2] % symbols.length];
+    let randomPart = '';
+    for (let i = 3; i < 7; i++) {
+      randomPart += charset[randValues[i] % charset.length];
+    }
+    return `${prefix}${sym1}${randomPart}${sym2}`;
   };
 
   const handleUpdateEmployeeLevel = async (empId, newLevel) => {
@@ -812,7 +868,7 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   };
 
   const handleExportScheduleCsv = () => {
-    window.location.href = `/api/admin/export-schedules-csv?token=${encodeURIComponent(getAuthToken())}`;
+    handleAuthenticatedDownload('/api/admin/export-schedules-csv', 'mivhanan_schedules_4m.csv');
   };
 
   // KPIs
@@ -850,15 +906,15 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
         </div>
 
         <div className="admin-header-actions">
-          <a
-            href={`/api/admin/backup-zip?token=${encodeURIComponent(getAuthToken())}`}
-            download
+          <button
+            type="button"
+            onClick={() => handleAuthenticatedDownload('/api/admin/backup-zip', 'mivhanan_full_backup.zip')}
             className="btn btn-secondary"
             title="הורדת קובץ גיבוי ZIP מלא של כל המערכת (כולל JSON וכל קובצי ה-PDF)"
           >
             <Archive size={16} className="text-amber" />
             <span>גיבוי מלא (ZIP)</span>
-          </a>
+          </button>
 
           <label
             className="btn btn-secondary"
@@ -1111,16 +1167,15 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
                               <span>צפה במבחן</span>
                             </button>
 
-                            <a
-                              href={`/api/results/${r.id}/pdf?token=${encodeURIComponent(getAuthToken())}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => handleOpenAuthenticatedPdf(r.id)}
                               className="btn-table-pdf"
                               title="הורדת / פתיחת קובץ ה-PDF של המבחן"
                             >
                               <FileDown size={13} />
                               <span>PDF</span>
-                            </a>
+                            </button>
 
                             <button
                               type="button"
@@ -1575,15 +1630,15 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
                 <p className="tab-subtitle">ניהול הרשאות, רמת מבחן וסיסמאות אישיות מאובטחות (תואם תקני הגנת המידע והפרטיות)</p>
               </div>
               <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <a 
-                  href={`/api/admin/export-credentials-csv?token=${encodeURIComponent(getAuthToken())}`} 
-                  download="mivhanan_credentials.csv"
+                <button 
+                  type="button"
+                  onClick={() => handleAuthenticatedDownload('/api/admin/export-credentials-csv', 'mivhanan_credentials.csv')}
                   className="btn btn-secondary btn-sm"
                   title="הורדת קובץ אקסל עם שמות המשתמש והסיסמאות של כל העובדים לצורך חלוקה"
                 >
                   <KeyRound size={15} />
                   <span>ייצוא רשימת סיסמאות (Excel)</span>
-                </a>
+                </button>
                 <button 
                   type="button" 
                   id="btn-open-add-emp-modal"
@@ -1687,12 +1742,12 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                           <code className="font-mono" style={{ background: 'rgba(255,255,255,0.08)', padding: '2px 7px', borderRadius: '4px', fontSize: '0.84rem' }}>
-                            {emp.isAdmin ? 'Hanan4343!' : (emp.password || '—')}
+                            {emp.password || '—'}
                           </code>
                           {emp.password && (
                             <button
                               type="button"
-                              onClick={() => copyPasswordToClipboard(emp.id, emp.isAdmin ? 'Hanan4343!' : emp.password)}
+                              onClick={() => copyPasswordToClipboard(emp.id, emp.password)}
                               title="העתק סיסמה ללוח"
                               style={{ 
                                 padding: '3px 5px', 

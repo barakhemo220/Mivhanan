@@ -1,6 +1,17 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
+// HTML Entity Escaping (SEC-06: Prevents DOM-Based XSS in client PDF renderer)
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * Generates an official examination PDF report for a completed or saved exam.
  * 
@@ -84,30 +95,30 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
-      <div><span style="color: #64748b;">שם הנבחן:</span> <strong>${employeeName}</strong></div>
-      <div><span style="color: #64748b;">מספר אישי:</span> <strong>${employeeId}</strong></div>
-      <div><span style="color: #64748b;">מחלקה / יחידה:</span> <strong>${department}</strong></div>
-      <div><span style="color: #64748b;">תאריך ביצוע:</span> <strong>${dateFormatted} ${timeFormatted}</strong></div>
-      <div><span style="color: #64748b;">משך בחינה:</span> <strong>${durationStr}</strong></div>
-      <div><span style="color: #64748b;">מזהה מערכת:</span> <span style="font-family: monospace; font-size: 11px;">${id || '—'}</span></div>
+      <div><span style="color: #64748b;">שם הנבחן:</span> <strong>${escapeHtml(employeeName)}</strong></div>
+      <div><span style="color: #64748b;">מספר אישי:</span> <strong>${escapeHtml(employeeId)}</strong></div>
+      <div><span style="color: #64748b;">מחלקה / יחידה:</span> <strong>${escapeHtml(department)}</strong></div>
+      <div><span style="color: #64748b;">תאריך ביצוע:</span> <strong>${escapeHtml(dateFormatted)} ${escapeHtml(timeFormatted)}</strong></div>
+      <div><span style="color: #64748b;">משך בחינה:</span> <strong>${escapeHtml(durationStr)}</strong></div>
+      <div><span style="color: #64748b;">מזהה מערכת:</span> <span style="font-family: monospace; font-size: 11px;">${escapeHtml(id || '—')}</span></div>
     </div>
 
     <div style="display: flex; justify-content: space-around; align-items: center; border: 2px solid ${
       passed ? '#22c55e' : '#ef4444'
     }; background: #ffffff; padding: 14px; border-radius: 8px; margin-bottom: 24px; text-align: center;">
       <div>
-        <div style="font-size: 32px; font-weight: 800; color: ${passed ? '#15803d' : '#b91c1c'};">${score}%</div>
+        <div style="font-size: 32px; font-weight: 800; color: ${passed ? '#15803d' : '#b91c1c'};">${Number(score) || 0}%</div>
         <div style="font-size: 12px; color: #64748b; font-weight: 600;">ציון סופי</div>
       </div>
       <div style="width: 1px; height: 36px; background: #e2e8f0;"></div>
       <div>
-        <div style="font-size: 26px; font-weight: 700; color: #0284c7;">${correctCount} / ${totalQuestions}</div>
+        <div style="font-size: 26px; font-weight: 700; color: #0284c7;">${Number(correctCount) || 0} / ${Number(totalQuestions) || 0}</div>
         <div style="font-size: 12px; color: #64748b; font-weight: 600;">תשובות נכונות</div>
       </div>
       <div style="width: 1px; height: 36px; background: #e2e8f0;"></div>
       <div>
         <div style="font-size: 26px; font-weight: 700; color: ${totalQuestions - correctCount > 0 ? '#b91c1c' : '#15803d'};">
-          ${totalQuestions - correctCount}
+          ${(Number(totalQuestions) || 0) - (Number(correctCount) || 0)}
         </div>
         <div style="font-size: 12px; color: #64748b; font-weight: 600;">שגויות / לא נענו</div>
       </div>
@@ -125,7 +136,7 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
               <span style="font-weight: 700; color: #334155;">שאלה ${idx + 1} מתוך ${review.length}</span>
               <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
-                ${q.topic || 'מכשור ובקרה'}
+                ${escapeHtml(q.topic || 'מכשור ובקרה')}
               </span>
               <span style="font-weight: 700; color: ${isCorrect ? '#16a34a' : '#dc2626'};">
                 ${isCorrect ? '✓ תשובה נכונה' : '✗ תשובה שגויה'}
@@ -133,7 +144,7 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
             </div>
 
             <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 10px; line-height: 1.4;">
-              ${q.question}
+              ${escapeHtml(q.question)}
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;">
@@ -162,7 +173,7 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
 
                 return `
                   <div style="padding: 7px 12px; border-radius: 6px; font-size: 12px; border: 1px solid ${border}; background: ${bg}; color: ${text};">
-                    <strong>${letters[optIdx]}.</strong> ${opt} ${tag}
+                    <strong>${letters[optIdx]}.</strong> ${escapeHtml(opt)} ${tag}
                   </div>
                 `;
               }).join('')}
@@ -170,7 +181,7 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
 
             ${q.explanation ? `
               <div style="background: #eff6ff; border-right: 3px solid #3b82f6; padding: 8px 12px; border-radius: 4px; font-size: 11.5px; color: #1e40af; line-height: 1.4;">
-                <strong>💡 הסבר טכני:</strong> ${q.explanation}
+                <strong>💡 הסבר טכני:</strong> ${escapeHtml(q.explanation)}
               </div>
             ` : ''}
           </div>
@@ -179,7 +190,7 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
     </div>
 
     <div style="margin-top: 24px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-      הופק אוטומטית ע"י מערכת מִבְחָנָן • ${dateFormatted} ${timeFormatted} • מזהה אימות דיגיטלי: ${id || '000'}
+      הופק אוטומטית ע"י מערכת מִבְחָנָן • ${escapeHtml(dateFormatted)} ${escapeHtml(timeFormatted)} • מזהה אימות דיגיטלי: ${escapeHtml(id || '000')}
     </div>
   `;
 
@@ -249,15 +260,19 @@ export async function generateAndSaveExamPdf(resultData, options = {}) {
     };
   } catch (error) {
     console.error('Error in generateAndSaveExamPdf:', error);
-    // If client generation fails, fallback to server printable view
+    // If client generation fails, fallback to server printable view via Authorization header (SEC-09)
     if (id && autoDownload) {
-      let token = null;
       try {
         const savedUser = sessionStorage.getItem('mivhanan_user');
-        token = savedUser ? JSON.parse(savedUser)?.token : null;
+        const token = savedUser ? JSON.parse(savedUser)?.token : null;
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const repRes = await fetch(`/api/results/${id}/report?print=1`, { headers });
+        if (repRes.ok) {
+          const htmlBlob = await repRes.blob();
+          const blobUrl = URL.createObjectURL(htmlBlob);
+          window.open(blobUrl, '_blank');
+        }
       } catch {}
-      const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
-      window.open(`/api/results/${id}/report?print=1${tokenParam}`, '_blank');
     }
     return { success: false, error: error.message };
   } finally {
