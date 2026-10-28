@@ -36,8 +36,10 @@ import {
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import SavedExamModal from './SavedExamModal';
+import EditEmployeeModal from './EditEmployeeModal';
+import { getAuthHeaders, downloadAuthenticatedBlob, openAuthenticatedBlobInNewTab } from '../utils/authClient';
 
-export default function AdminDashboard({ onBackToExam, user, onLogout }) {
+export default function AdminDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('results'); // results, questions, employees
   const [results, setResults] = useState([]);
   const [questions, setQuestions] = useState([]);
@@ -48,27 +50,8 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [selectedSavedExam, setSelectedSavedExam] = useState(null);
 
-  // Auth Helpers for protected Admin API calls
-  const getAuthToken = () => {
-    if (user?.token) return user.token;
-    try {
-      const saved = sessionStorage.getItem('mivhanan_user');
-      return saved ? JSON.parse(saved)?.token : '';
-    } catch {
-      return '';
-    }
-  };
-
-  const getAuthHeaders = () => {
-    const token = getAuthToken();
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-  };
-
   const authFetch = async (url, options = {}) => {
-    const headers = {
-      ...getAuthHeaders(),
-      ...(options.headers || {})
-    };
+    const headers = getAuthHeaders(user, options.headers || {});
     const res = await fetch(url, { ...options, headers });
     if (res.status === 401 || res.status === 403) {
       showToast('פג תוקף ההתחברות או שההרשאה אינה תקפה', 'error');
@@ -98,9 +81,9 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  // New employee form state
+  // New & edit employee form state
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
-  const [newEmpId, setNewEmpId] = useState('');
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const [newEmpName, setNewEmpName] = useState('');
   const [newEmpUsername, setNewEmpUsername] = useState('');
   const [newEmpPassword, setNewEmpPassword] = useState('');
@@ -109,7 +92,6 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   const [newEmpLevel, setNewEmpLevel] = useState(2);
   const [newEmpIsAdmin, setNewEmpIsAdmin] = useState(false);
   const [copiedEmpId, setCopiedEmpId] = useState(null);
-  const [showPasswords, setShowPasswords] = useState(false);
 
   // Employee level update and filter state
   const [updatingEmpId, setUpdatingEmpId] = useState(null);
@@ -141,37 +123,43 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
     }, 3500);
   };
 
-  const handleRestoreZip = async (e) => {
+  const handleRestoreZip = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
-    if (!confirm(`האם אתה בטוח שברצונך לשחזר את נתוני המערכת מתוך הקובץ "${file.name}"?\nפעולה זו תעדכן את רשימות העובדים, בנק השאלות, הציונים וקובצי ה-PDF.`)) {
-      e.target.value = '';
-      return;
-    }
+    setConfirmDialog({
+      title: 'שחזור מערכת מקובץ גיבוי ZIP',
+      message: `האם אתה בטוח שברצונך לשחזר את נתוני המערכת מתוך הקובץ "${file.name}"?`,
+      details: `שם קובץ: ${file.name} • גודל: ${(file.size / 1024).toFixed(1)} KB`,
+      warningNote: 'פעולה זו תעדכן את רשימות העובדים, בנק השאלות, הציונים וקובצי ה-PDF במערכת.',
+      confirmText: 'שחזר נתונים כעת',
+      confirmVariant: 'warning',
+      onConfirm: async () => {
+        setIsRestoring(true);
+        const formData = new FormData();
+        formData.append('backupZip', file);
 
-    setIsRestoring(true);
-    const formData = new FormData();
-    formData.append('backupZip', file);
+        try {
+          const res = await authFetch('/api/admin/restore-zip', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'שגיאה בשחזור הגיבוי');
+          }
 
-    try {
-      const res = await authFetch('/api/admin/restore-zip', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'שגיאה בשחזור הגיבוי');
+          showToast(data.message || 'השחזור הושלם בהצלחה!', 'success');
+          await fetchDashboardData();
+        } catch (err) {
+          showToast(err.message || 'שגיאה בביצוע השחזור', 'error');
+        } finally {
+          setIsRestoring(false);
+          setConfirmDialog(null);
+        }
       }
-
-      showToast(data.message || 'השחזור הושלם בהצלחה!', 'success');
-      await fetchDashboardData();
-    } catch (err) {
-      showToast(err.message || 'שגיאה בביצוע השחזור', 'error');
-    } finally {
-      setIsRestoring(false);
-      e.target.value = '';
-    }
+    });
   };
 
   useEffect(() => {
@@ -199,25 +187,7 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
 
   const handleAuthenticatedDownload = async (url, fallbackFilename) => {
     try {
-      const res = await authFetch(url);
-      if (!res.ok) {
-        throw new Error('שגיאה בהורדת הקובץ מהשרת');
-      }
-      const disposition = res.headers.get('content-disposition');
-      let filename = fallbackFilename;
-      if (disposition && disposition.includes('filename=')) {
-        const match = disposition.match(/filename="?([^";]+)"?/i);
-        if (match && match[1]) filename = match[1];
-      }
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      await downloadAuthenticatedBlob(url, fallbackFilename, user);
     } catch (err) {
       showToast(err.message || 'שגיאה בהורדת הקובץ', 'error');
     }
@@ -225,14 +195,7 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
 
   const handleOpenAuthenticatedPdf = async (resultId) => {
     try {
-      const res = await authFetch(`/api/results/${resultId}/pdf`);
-      if (!res.ok) {
-        throw new Error('שגיאה בפתיחת קובץ ה-PDF');
-      }
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      await openAuthenticatedBlobInNewTab(`/api/results/${resultId}/pdf`, user);
     } catch (err) {
       showToast(err.message || 'שגיאה בפתיחת קובץ ה-PDF', 'error');
     }
@@ -250,7 +213,7 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
     const isImage = file.type.startsWith('image/');
 
     if (!isImage && !isSvg) {
-      alert('נא לבחור קובץ תמונה תקין (JPG, PNG, WebP, SVG)');
+      showToast('נא לבחור קובץ תמונה תקין (JPG, PNG, WebP, SVG)', 'warning');
       return;
     }
 
@@ -385,7 +348,7 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   const handleAddQuestion = async (e) => {
     e.preventDefault();
     if (!newQuestionText || newOptions.some(o => !o.trim())) {
-      alert('נא למלא את כל 4 המסיחים וגוף השאלה');
+      showToast('נא למלא את כל 4 המסיחים וגוף השאלה', 'warning');
       return;
     }
 
@@ -435,12 +398,13 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
         setNewOptions(['', '', '', '']);
         setNewExplanation('');
         handleClearImage();
+        showToast('השאלה נוספה בהצלחה לבנק השאלות', 'success');
         fetchDashboardData();
       } else {
-        alert(data.message);
+        showToast(data.message || 'שגיאה בשמירת שאלה חדשה', 'error');
       }
     } catch (err) {
-      alert(err.message || 'שגיאה בשמירת שאלה חדשה');
+      showToast(err.message || 'שגיאה בשמירת שאלה חדשה', 'error');
     } finally {
       setIsUploadingImage(false);
     }
@@ -449,7 +413,7 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     if (!newEmpName.trim()) {
-      alert('נא למלא שם עובד');
+      showToast('נא למלא שם עובד', 'warning');
       return;
     }
 
@@ -470,7 +434,6 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
       const data = await res.json();
       if (data.success) {
         setShowAddEmpModal(false);
-        setNewEmpId('');
         setNewEmpName('');
         setNewEmpUsername('');
         setNewEmpPassword('');
@@ -478,12 +441,33 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
         setNewEmpRole('מכשירן חומר גלם');
         setNewEmpLevel(2);
         setNewEmpIsAdmin(false);
+        showToast(`העובד "${data.employee?.name || newEmpName}" נוסף בהצלחה`, 'success');
         fetchDashboardData();
       } else {
-        alert(data.message || 'שגיאה בשמירת עובד');
+        showToast(data.message || 'שגיאה בשמירת עובד', 'error');
       }
     } catch (err) {
-      alert('שגיאה בהוספת עובד');
+      showToast('שגיאה בהוספת עובד', 'error');
+    }
+  };
+
+  const handleSaveEmployeeEdit = async (empId, payload) => {
+    try {
+      const res = await authFetch(`/api/admin/employees/${empId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success && data.employee) {
+        setEmployees(prev => prev.map(emp => (emp.id === empId ? { ...emp, ...data.employee } : emp)));
+        setEditingEmployee(null);
+        showToast('פרטי העובד עודכנו בהצלחה', 'success');
+      } else {
+        showToast(data.message || 'שגיאה בעדכון פרטי העובד', 'error');
+      }
+    } catch (err) {
+      showToast('שגיאת תקשורת בעדכון פרטי העובד', 'error');
     }
   };
 
@@ -545,10 +529,10 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
           // ignore
         }
       } else {
-        alert(data.message || 'שגיאה בעדכון רמת העובד');
+        showToast(data.message || 'שגיאה בעדכון רמת העובד', 'error');
       }
     } catch (err) {
-      alert('שגיאת תקשורת בעדכון רמת העובד');
+      showToast('שגיאת תקשורת בעדכון רמת העובד', 'error');
     } finally {
       setUpdatingEmpId(null);
     }
@@ -784,11 +768,12 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
         setScheduleSuccessId(schedulingEmp.id);
         setTimeout(() => setScheduleSuccessId(null), 2500);
         setSchedulingEmp(null);
+        showToast('מועד המבחן עודכן בהצלחה', 'success');
       } else {
-        alert(data.message || 'שגיאה בעדכון מועד המבחן');
+        showToast(data.message || 'שגיאה בעדכון מועד המבחן', 'error');
       }
     } catch (err) {
-      alert('שגיאת תקשורת בעדכון המועד');
+      showToast('שגיאת תקשורת בעדכון המועד', 'error');
     } finally {
       setIsSavingSchedule(false);
     }
@@ -1810,22 +1795,33 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
                           <span className="text-muted">עובד רגיל</span>
                         )}
                       </td>
-                      <td>
-                        {emp.isAdmin || String(emp.id).trim() === 'admin' || String(emp.id).trim() === '9999' ? (
-                          <span className="text-muted" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
-                            מוגן (Admin)
-                          </span>
-                        ) : (
+                      <td className="table-actions-cell">
+                        <div className="table-actions-group">
                           <button
                             type="button"
-                            className="btn-table-delete"
-                            onClick={() => handleDeleteEmployee(emp.id, emp.name, emp.role, emp.department)}
-                            title={`הסר את ${emp.name} מרשימת העובדים`}
+                            className="btn-table-view-exam"
+                            onClick={() => setEditingEmployee(emp)}
+                            title={`עריכת פרטים או סיסמה עבור ${emp.name}`}
                           >
-                            <Trash2 size={13} />
-                            <span>הסר</span>
+                            <Edit3 size={13} />
+                            <span>ערוך</span>
                           </button>
-                        )}
+                          {emp.isAdmin || String(emp.id).trim() === 'admin' || String(emp.id).trim() === '9999' ? (
+                            <span className="text-muted" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
+                              מוגן (Admin)
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-table-delete"
+                              onClick={() => handleDeleteEmployee(emp.id, emp.name, emp.role, emp.department)}
+                              title={`הסר את ${emp.name} מרשימת העובדים`}
+                            >
+                              <Trash2 size={13} />
+                              <span>הסר</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1849,6 +1845,14 @@ export default function AdminDashboard({ onBackToExam, user, onLogout }) {
         imageSrc={lightboxImage}
         title="תרשים מכשור ובקרה"
         onClose={() => setLightboxImage(null)}
+      />
+
+      {/* Edit Employee Modal (CR-11) */}
+      <EditEmployeeModal
+        employee={editingEmployee}
+        onClose={() => setEditingEmployee(null)}
+        onSave={handleSaveEmployeeEdit}
+        generateRandomPassword={generateRandomPassword}
       />
 
       {/* Add Question Modal */}

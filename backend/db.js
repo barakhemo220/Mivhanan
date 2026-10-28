@@ -168,6 +168,12 @@ async function seedAtlasFromLocalIfEmpty() {
   }
 }
 
+function writeAtomicSync(filePath, content) {
+  const tempPath = `${filePath}.tmp`;
+  fs.writeFileSync(tempPath, content, 'utf-8');
+  fs.renameSync(tempPath, filePath);
+}
+
 /**
  * On fresh spin-up (e.g. Render restart or cold start), sync Atlas data to local disk
  * so any local code/downloads/static serving work seamlessly.
@@ -179,19 +185,19 @@ export async function syncAtlasToLocalDisk() {
     // Sync Employees
     const employees = await EmployeeModel.find({}, '-_id -__v').lean();
     if (employees && employees.length > 0) {
-      fs.writeFileSync(EMPLOYEES_FILE, JSON.stringify(employees, null, 2), 'utf-8');
+      writeAtomicSync(EMPLOYEES_FILE, JSON.stringify(employees, null, 2));
     }
 
     // Sync Questions
     const questions = await QuestionModel.find({}, '-_id -__v').lean();
     if (questions && questions.length > 0) {
-      fs.writeFileSync(QUESTIONS_FILE, JSON.stringify(questions, null, 2), 'utf-8');
+      writeAtomicSync(QUESTIONS_FILE, JSON.stringify(questions, null, 2));
     }
 
     // Sync Results
     const results = await ExamResultModel.find({}, '-_id -__v').lean();
     if (results && results.length > 0) {
-      fs.writeFileSync(RESULTS_FILE, JSON.stringify(results, null, 2), 'utf-8');
+      writeAtomicSync(RESULTS_FILE, JSON.stringify(results, null, 2));
     }
 
     // Sync PDFs

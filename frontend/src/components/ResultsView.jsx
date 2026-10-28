@@ -7,11 +7,7 @@ import {
   Clock, 
   Printer, 
   RotateCcw, 
-  LayoutDashboard, 
-  HelpCircle, 
   Maximize2,
-  ChevronDown,
-  ChevronUp,
   FileCheck,
   LogOut,
   CalendarCheck,
@@ -23,10 +19,9 @@ import { generateAndSaveExamPdf } from '../utils/pdfGenerator';
 
 const OPTION_LETTERS = ['א', 'ב', 'ג', 'ד'];
 
-export default function ResultsView({ resultData, user, onRetakeExam, onNavigateAdmin, onLogout }) {
+export default function ResultsView({ resultData, user, onRetakeExam, onLogout }) {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [filter, setFilter] = useState('all'); // all, incorrect, correct
-  const [expandedId, setExpandedId] = useState(null);
   const [pdfStatus, setPdfStatus] = useState(resultData?.isPractice ? 'practice' : 'generating'); // 'generating' | 'saved' | 'error' | 'practice'
   const [savedPdfFilename, setSavedPdfFilename] = useState('');
 
@@ -260,16 +255,6 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
                     <span>יציאה מהמערכת</span>
                   </button>
                 </>
-              ) : user?.isAdmin ? (
-                <button 
-                  type="button" 
-                  id="btn-retake-exam"
-                  className="btn btn-primary"
-                  onClick={onRetakeExam}
-                >
-                  <RotateCcw size={16} />
-                  <span>מבחן חדש (בדיקת מנהל)</span>
-                </button>
               ) : (
                 <button 
                   type="button" 
@@ -309,18 +294,6 @@ export default function ResultsView({ resultData, user, onRetakeExam, onNavigate
                 <Printer size={16} />
                 <span>הדפס</span>
               </button>
-
-              {user?.isAdmin && (
-                <button 
-                  type="button" 
-                  id="btn-goto-admin"
-                  className="btn btn-secondary"
-                  onClick={onNavigateAdmin}
-                >
-                  <LayoutDashboard size={16} />
-                  <span>ניהול מערכת ודוחות</span>
-                </button>
-              )}
             </div>
           </div>
         </div>

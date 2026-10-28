@@ -71,6 +71,16 @@ export default function App() {
     setCurrentView('exam');
   };
 
+  // CR-02: Reset examStartTime when the exam actually starts (not while waiting in lobby)
+  const handleActiveExamRunning = (isRunning, customStartTime = null) => {
+    setIsExamRunning(prev => {
+      if (isRunning && (!prev || customStartTime)) {
+        setExamStartTime(customStartTime || Date.now());
+      }
+      return isRunning;
+    });
+  };
+
   const handleNavigate = (view) => {
     // Admin users only access admin dashboard, never take exams
     if (user?.isAdmin && (view === 'exam' || view === 'results')) {
@@ -108,7 +118,7 @@ export default function App() {
             onExamComplete={handleExamComplete}
             examStartTime={examStartTime}
             onLogout={handleLogout}
-            onActiveExamRunning={setIsExamRunning}
+            onActiveExamRunning={handleActiveExamRunning}
           />
         )}
 
@@ -117,7 +127,6 @@ export default function App() {
             resultData={lastResult}
             user={user}
             onRetakeExam={handleRetakeExam}
-            onNavigateAdmin={() => handleNavigate('admin')}
             onLogout={handleLogout}
           />
         )}
@@ -125,7 +134,6 @@ export default function App() {
         {currentView === 'admin' && user?.isAdmin && (
           <AdminDashboard
             user={user}
-            onBackToExam={() => setCurrentView('exam')}
             onLogout={handleLogout}
           />
         )}

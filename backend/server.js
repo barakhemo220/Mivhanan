@@ -25,7 +25,11 @@ const __dirname = path.dirname(__filename);
 
 // Initiate MongoDB Atlas cloud connection (with local fallback) and rotate/migrate keys
 connectToMongoDB()
-  .then(() => migratePlainPasswordsToEncrypted())
+  .then(() => {
+    jsonMemoryCache.clear();
+    corruptedFiles.clear();
+    migratePlainPasswordsToEncrypted();
+  })
   .catch(err => console.error('MongoDB Atlas init error:', err));
 
 const app = express();
@@ -384,25 +388,31 @@ async function atomicCollectionSync(Model, data) {
   }
 }
 
-// Helper to read JSON file safely with corruption recovery (SEC-01)
+// Helper to read JSON file safely with mtime-verified memory cache & corruption recovery (SEC-01 & CR-08)
 const readJson = (filePath, fallback = []) => {
   try {
     if (!fs.existsSync(filePath)) {
       fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2), 'utf-8');
-      jsonMemoryCache.set(filePath, fallback);
-      return fallback;
+      const mtimeMs = fs.statSync(filePath).mtimeMs;
+      jsonMemoryCache.set(filePath, { data: fallback, mtimeMs });
+      return structuredClone(fallback);
+    }
+    const stat = fs.statSync(filePath);
+    const cached = jsonMemoryCache.get(filePath);
+    if (cached && cached.mtimeMs === stat.mtimeMs && !corruptedFiles.has(filePath)) {
+      return structuredClone(cached.data);
     }
     const raw = fs.readFileSync(filePath, 'utf-8').replace(/^\uFEFF/, '').trim();
     const parsed = JSON.parse(raw);
     corruptedFiles.delete(filePath);
-    jsonMemoryCache.set(filePath, parsed);
-    return parsed;
+    jsonMemoryCache.set(filePath, { data: parsed, mtimeMs: stat.mtimeMs });
+    return structuredClone(parsed);
   } catch (err) {
     console.error(`Error reading ${filePath}:`, err.message);
     corruptedFiles.add(filePath);
     if (jsonMemoryCache.has(filePath)) {
       console.warn(`⚠️ Using cached in-memory state for corrupted file ${path.basename(filePath)}`);
-      return jsonMemoryCache.get(filePath);
+      return structuredClone(jsonMemoryCache.get(filePath).data);
     }
     return fallback;
   }
@@ -424,8 +434,9 @@ const writeJson = (filePath, data) => {
     fs.writeFileSync(tempPath, serialized, 'utf-8');
     fs.renameSync(tempPath, filePath);
 
+    const mtimeMs = fs.statSync(filePath).mtimeMs;
     corruptedFiles.delete(filePath);
-    jsonMemoryCache.set(filePath, data);
+    jsonMemoryCache.set(filePath, { data: structuredClone(data), mtimeMs });
 
     // Serialized Atomic Cloud Sync to MongoDB Atlas
     if (isDbConnected()) {
@@ -491,7 +502,29 @@ function checkExamEligibility(employee) {
     };
   }
 
-  if (!employee.nextExamDate || String(employee.nextExamDate).trim() === '') {
+  let effectiveDateStr = employee.nextExamDate ? String(employee.nextExamDate).trim() : '';
+
+  // CR-07: If no custom nextExamDate is set, derive the automatic 4-month cycle from the employee's latest exam result
+  if (!effectiveDateStr) {
+    const results = readJson(RESULTS_FILE, []);
+    const cleanEmpId = String(employee.id).trim();
+    let latestSubmittedAt = null;
+    for (const r of results) {
+      if (String(r.employeeId).trim() === cleanEmpId && r.submittedAt) {
+        const dt = new Date(r.submittedAt);
+        if (!isNaN(dt.getTime()) && (!latestSubmittedAt || dt > latestSubmittedAt)) {
+          latestSubmittedAt = dt;
+        }
+      }
+    }
+    if (latestSubmittedAt) {
+      const autoTarget = new Date(latestSubmittedAt);
+      autoTarget.setMonth(autoTarget.getMonth() + 4);
+      effectiveDateStr = autoTarget.toISOString().split('T')[0];
+    }
+  }
+
+  if (!effectiveDateStr) {
     return {
       canTakeExam: false,
       reason: 'NO_SCHEDULED_EXAM',
@@ -499,7 +532,7 @@ function checkExamEligibility(employee) {
     };
   }
 
-  const parts = String(employee.nextExamDate).trim().split('-');
+  const parts = effectiveDateStr.split('-');
   if (parts.length !== 3) {
     return {
       canTakeExam: false,
@@ -541,7 +574,7 @@ function checkExamEligibility(employee) {
     return {
       canTakeExam: false,
       reason: 'TOO_EARLY',
-      nextExamDate: employee.nextExamDate,
+      nextExamDate: effectiveDateStr,
       targetDateFormatted,
       windowOpenDate: windowOpenDate.toISOString().split('T')[0],
       windowOpenDateFormatted,
@@ -555,7 +588,7 @@ function checkExamEligibility(employee) {
   return {
     canTakeExam: true,
     reason: 'ELIGIBLE',
-    nextExamDate: employee.nextExamDate,
+    nextExamDate: effectiveDateStr,
     targetDateFormatted,
     diffDays,
     isOverdue: diffDays < 0,
@@ -589,7 +622,13 @@ function migratePlainPasswordsToEncrypted() {
     console.error('Password migration error:', err);
   }
 }
-migratePlainPasswordsToEncrypted();
+
+// Configurable nickname / alias map for employee login (CR-12)
+const USER_ALIASES_MAP = new Map([
+  ['ברק א', 'ברק ח'],
+  ['עדיאל מ', 'עדי מ'],
+  ['אדוארד ר', 'אדי ר']
+]);
 
 // In-memory store for active exam sessions to prevent score manipulation & replay (SEC-04)
 const activeExamSessions = new Map();
@@ -677,21 +716,22 @@ app.post('/api/auth/login', (req, res) => {
   // 2. Regular Employee Login Check (Strong Password & Anonymized Username)
   const normalizeHebrew = (str) => String(str || '').trim().toLowerCase().replace(/['"״׳]/g, '');
   const normUser = normalizeHebrew(username);
+  const mappedAlias = USER_ALIASES_MAP.get(normUser);
 
   const match = employees.find(emp => {
     if (emp.isAdmin) return false;
     const empUser = normalizeHebrew(emp.username || emp.name);
     const empName = normalizeHebrew(emp.name);
     const empId = String(emp.id).trim().toLowerCase();
+    const empAliases = Array.isArray(emp.aliases) ? emp.aliases.map(normalizeHebrew) : [];
 
-    // Flexible username match (e.g. "ניר א", "ניר א'", "ברק ח", "ברק א", "עדי מ", "עדיאל מ", "אדי ר", "אדוארד ר")
+    // Flexible username & alias match (CR-12)
     const userMatches = (
       empUser === normUser ||
       empName === normUser ||
       empId === cleanUser ||
-      (normUser === 'ברק א' && empName === 'ברק ח') ||
-      (normUser === 'עדיאל מ' && empName === 'עדי מ') ||
-      (normUser === 'אדוארד ר' && empName === 'אדי ר')
+      (mappedAlias && (empName === mappedAlias || empUser === mappedAlias)) ||
+      empAliases.includes(normUser)
     );
 
     // Secure constant-time encrypted password verification
@@ -1402,6 +1442,12 @@ app.get('/api/results/:id/report', authenticateToken, (req, res) => {
 
           <div class="q-title">${escapeHtml(q.question)}</div>
 
+          ${q.image ? `
+            <div style="margin: 10px 0; text-align: center;">
+              <img src="${escapeHtml(q.image)}" alt="תרשים טכני" style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; background: #fff;" />
+            </div>
+          ` : ''}
+
           <div class="options-list">
             ${(q.options || []).map((opt, optIdx) => {
               const isSelected = q.selectedAnswer === optIdx;
@@ -1447,7 +1493,9 @@ app.get('/api/results/:id/report', authenticateToken, (req, res) => {
 // -------------------------------------------------------------
 app.get('/api/admin/results', requireAdmin, (req, res) => {
   const results = readJson(RESULTS_FILE, []);
-  res.json({ success: true, results });
+  // CR-08: Strip heavy review & pdfBase64 arrays from list response (fetched on-demand via /api/results/:id)
+  const summaryResults = results.map(({ review, pdfBase64, ...summary }) => summary);
+  res.json({ success: true, results: summaryResults });
 });
 
 // Export Results as Excel-friendly CSV with UTF-8 BOM & Formula Injection Protection
@@ -1614,6 +1662,26 @@ app.post('/api/admin/restore-zip', requireAdmin, zipUpload.single('backupZip'), 
       fs.writeFileSync(path.join(SAVED_EXAMS_PDF_DIR, pdf.filename), pdf.data);
       restoredCount++;
     });
+
+    // CR-06: Sync restored PDFs to MongoDB Atlas so they persist across cloud restarts
+    if (stagedPdfs.length > 0 && isDbConnected()) {
+      const pdfOps = stagedPdfs.map(pdf => ({
+        updateOne: {
+          filter: { filename: pdf.filename },
+          update: {
+            $set: {
+              filename: pdf.filename,
+              dataBase64: pdf.data.toString('base64'),
+              sizeBytes: pdf.data.length
+            }
+          },
+          upsert: true
+        }
+      }));
+      SavedPdfModel.bulkWrite(pdfOps, { ordered: false }).catch(err => {
+        console.error('Atlas restored PDFs sync error:', err.message);
+      });
+    }
 
     try { fs.unlinkSync(req.file.path); } catch {}
 
@@ -1848,11 +1916,17 @@ app.post('/api/admin/employees', requireAdmin, (req, res) => {
   const cleanName = String(name).trim();
   const cleanUser = username ? String(username).trim() : cleanName;
 
-  // Generate anonymous ID if not provided (emp_01, emp_02, etc.)
+  // Generate collision-free anonymous ID if not provided (CR-04: emp_01, emp_02, etc.)
   let assignedId = id ? String(id).trim() : '';
   if (!assignedId) {
-    const nextNum = employees.length + 1;
-    assignedId = `emp_${String(nextNum).padStart(2, '0')}`;
+    let maxNum = employees.reduce((max, e) => {
+      const match = String(e.id || '').trim().match(/^emp_(\d+)$/i);
+      return match ? Math.max(max, parseInt(match[1], 10)) : max;
+    }, 0);
+    do {
+      maxNum++;
+      assignedId = `emp_${String(maxNum).padStart(2, '0')}`;
+    } while (employees.some(e => String(e.id).trim() === assignedId));
   }
 
   // Generate cryptographically strong password if not provided (SEC-11)
@@ -2011,8 +2085,20 @@ app.post('/api/admin/employees/auto-schedule', requireAdmin, (req, res) => {
 
   employees.forEach(emp => {
     const cleanId = String(emp.id).trim();
+    // CR-05: Never auto-schedule system administrators
+    if (emp.isAdmin || cleanId === 'admin' || cleanId === '9999') {
+      return;
+    }
     if (employeeIds && Array.isArray(employeeIds) && !employeeIds.includes(cleanId)) {
       return;
+    }
+
+    // CR-05: When running batch auto-schedule without explicit employeeIds, preserve valid future custom schedules
+    if (!employeeIds && emp.nextExamDate) {
+      const existingTarget = new Date(emp.nextExamDate);
+      if (!isNaN(existingTarget.getTime()) && existingTarget >= now) {
+        return;
+      }
     }
 
     const lastResult = latestResultMap.get(cleanId);

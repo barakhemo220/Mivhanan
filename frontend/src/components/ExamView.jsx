@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import ConfirmSubmitModal from './ConfirmSubmitModal';
+import { getAuthHeaders } from '../utils/authClient';
 
 const OPTION_LETTERS = ['א', 'ב', 'ג', 'ד'];
 
@@ -53,7 +54,38 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [paletteFilter, setPaletteFilter] = useState('all'); // all, unanswered, flagged
 
-  // Fetch randomized questions on mount
+  const draftStorageKey = `mivhanan_active_draft_${user?.id || 'guest'}`;
+
+  const clearSavedDraft = () => {
+    try {
+      sessionStorage.removeItem(draftStorageKey);
+      localStorage.removeItem(draftStorageKey);
+      localStorage.removeItem(`mivhanan_draft_${user?.id}`);
+    } catch {}
+  };
+
+  // CR-01: Persist active exam progress consistently across refreshes
+  useEffect(() => {
+    if (!examStarted || !questions.length || !examId) return;
+    try {
+      const payload = JSON.stringify({
+        examId,
+        questions,
+        answers,
+        flagged,
+        currentIndex,
+        isPractice,
+        examStarted,
+        scheduleInfo,
+        examStartTime,
+        savedAt: Date.now()
+      });
+      sessionStorage.setItem(draftStorageKey, payload);
+      localStorage.setItem(draftStorageKey, payload);
+    } catch {}
+  }, [examId, questions, answers, flagged, currentIndex, isPractice, examStarted, scheduleInfo, examStartTime, draftStorageKey]);
+
+  // Fetch randomized questions on mount (or restore active in-progress draft)
   useEffect(() => {
     fetchExamQuestions();
   }, []);
@@ -63,14 +95,37 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       setIsRefreshingStatus(true);
     } else {
       setLoading(true);
+      // CR-01: Check if user has an active in-progress exam draft from a page reload
+      try {
+        const rawDraft = sessionStorage.getItem(draftStorageKey) || localStorage.getItem(draftStorageKey);
+        if (rawDraft) {
+          const draft = JSON.parse(rawDraft);
+          const isFresh = draft.savedAt && (Date.now() - draft.savedAt < 12 * 60 * 60 * 1000);
+          if (isFresh && draft.examStarted && Array.isArray(draft.questions) && draft.questions.length > 0 && draft.examId) {
+            setRestriction(null);
+            setQuestions(draft.questions);
+            setExamId(draft.examId);
+            setAnswers(draft.answers || {});
+            setFlagged(draft.flagged || {});
+            setCurrentIndex(Number.isInteger(draft.currentIndex) ? draft.currentIndex : 0);
+            setIsPractice(Boolean(draft.isPractice));
+            setScheduleInfo(draft.scheduleInfo || null);
+            setExamStarted(true);
+            if (onActiveExamRunning) onActiveExamRunning(true, draft.examStartTime || Date.now());
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not restore exam draft:', e);
+      }
     }
     setError('');
 
     try {
       const userLevel = user?.level || 2;
-      const authHeaders = user?.token ? { 'Authorization': `Bearer ${user.token}` } : {};
       const res = await fetch(`/api/exam/questions?count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
-        headers: authHeaders
+        headers: getAuthHeaders(user)
       });
       
       let data;
@@ -102,20 +157,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       });
       setQuestions(data.questions);
       setExamId(data.examId || null);
+      setAnswers({});
+      setFlagged({});
+      setCurrentIndex(0);
       setExamStarted(false);
       setIsPractice(false);
       if (onActiveExamRunning) onActiveExamRunning(false);
-
-      // Check if there are saved draft answers in localStorage
-      const storageKey = `mivhanan_answers_${user.id}_${data.examId}`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          setAnswers(JSON.parse(saved));
-        } catch (e) {
-          console.error('Failed to parse saved answers', e);
-        }
-      }
     } catch (err) {
       setError(err.message || 'שגיאה בתקשורת עם השרת');
       if (onActiveExamRunning) onActiveExamRunning(false);
@@ -125,12 +172,13 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     }
   };
 
-  // Start Official Scheduled Exam
+  // Start Official Scheduled Exam (CR-02: Reset exam start timer on actual start)
   const startOfficialExam = () => {
+    clearSavedDraft();
     setIsPractice(false);
     setExamStarted(true);
     setCurrentIndex(0);
-    if (onActiveExamRunning) onActiveExamRunning(true);
+    if (onActiveExamRunning) onActiveExamRunning(true, Date.now());
   };
 
   // Start Practice Exam (Scores are not recorded anywhere)
@@ -139,9 +187,8 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     setError('');
     try {
       const userLevel = user?.level || 2;
-      const authHeaders = user?.token ? { 'Authorization': `Bearer ${user.token}` } : {};
       const res = await fetch(`/api/exam/questions?mode=practice&count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
-        headers: authHeaders
+        headers: getAuthHeaders(user)
       });
       
       let data;
@@ -155,6 +202,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
         throw new Error(data.message || 'שגיאה בטעינת מצב תרגול');
       }
 
+      clearSavedDraft();
       setQuestions(data.questions);
       setExamId(data.examId || null);
       setRestriction(null);
@@ -163,7 +211,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       setCurrentIndex(0);
       setAnswers({});
       setFlagged({});
-      if (onActiveExamRunning) onActiveExamRunning(true);
+      if (onActiveExamRunning) onActiveExamRunning(true, Date.now());
     } catch (err) {
       alert(err.message || 'שגיאה בטעינת מצב תרגול');
     } finally {
@@ -176,18 +224,10 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   // Save selected option
   const handleSelectOption = (optionIndex) => {
     if (!currentQ) return;
-    const updated = {
-      ...answers,
+    setAnswers(prev => ({
+      ...prev,
       [currentQ.id]: optionIndex
-    };
-    setAnswers(updated);
-
-    // Save to local storage for crash/refresh resilience
-    try {
-      localStorage.setItem(`mivhanan_draft_${user.id}`, JSON.stringify(updated));
-    } catch (e) {
-      // Ignore quota errors
-    }
+    }));
   };
 
   // Toggle flag / review bookmark
@@ -223,10 +263,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     try {
       const res = await fetch('/api/exam/submit', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(user?.token ? { 'Authorization': `Bearer ${user.token}` } : {})
-        },
+        headers: getAuthHeaders(user, { 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           examId,
           employeeId: user.id,
@@ -246,7 +283,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       }
 
       // Clear draft storage
-      localStorage.removeItem(`mivhanan_draft_${user.id}`);
+      clearSavedDraft();
       setShowConfirmModal(false);
       if (onActiveExamRunning) onActiveExamRunning(false);
       onExamComplete({ ...data, isPractice });

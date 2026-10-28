@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { generateAndSaveExamPdf } from '../utils/pdfGenerator';
+import { getAuthHeaders, openAuthenticatedBlobInNewTab } from '../utils/authClient';
 
 export default function SavedExamModal({ result, onClose }) {
   const [examData, setExamData] = useState(null);
@@ -32,14 +33,9 @@ export default function SavedExamModal({ result, onClose }) {
       setLoading(true);
       setError(null);
       try {
-        let token = null;
-        try {
-          const saved = sessionStorage.getItem('mivhanan_user');
-          token = saved ? JSON.parse(saved)?.token : null;
-        } catch {}
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-        const res = await fetch(`/api/results/${result.id}`, { headers });
+        const res = await fetch(`/api/results/${result.id}`, {
+          headers: getAuthHeaders()
+        });
         const data = await res.json();
         if (!res.ok || !data.success) {
           throw new Error(data.message || 'שגיאה בטעינת נתוני המבחן השמור');
@@ -77,21 +73,8 @@ export default function SavedExamModal({ result, onClose }) {
       await generateAndSaveExamPdf(examData, { autoDownload: true, uploadToServer: true });
     } catch (err) {
       console.error('PDF generation error:', err);
-      // Fallback via Authorization header (avoids exposing JWT in URL)
-      let token = null;
       try {
-        const saved = sessionStorage.getItem('mivhanan_user');
-        token = saved ? JSON.parse(saved)?.token : null;
-      } catch {}
-      try {
-        const res = await fetch(`/api/results/${examData.id}/pdf`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        if (!res.ok) throw new Error('שגיאה בפתיחת קובץ ה-PDF');
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, '_blank', 'noopener,noreferrer');
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        await openAuthenticatedBlobInNewTab(`/api/results/${examData.id}/pdf`);
       } catch (fallbackErr) {
         console.error('PDF fallback error:', fallbackErr);
       }
@@ -102,21 +85,8 @@ export default function SavedExamModal({ result, onClose }) {
 
   const handleOpenPrintable = async () => {
     if (!examData?.id) return;
-    let token = null;
     try {
-      const saved = sessionStorage.getItem('mivhanan_user');
-      token = saved ? JSON.parse(saved)?.token : null;
-    } catch {}
-    try {
-      const res = await fetch(`/api/results/${examData.id}/report?print=1`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('שגיאה בפתיחת דוח ההדפסה');
-      const htmlText = await res.text();
-      const blob = new Blob([htmlText], { type: 'text/html;charset=utf-8' });
-      const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      await openAuthenticatedBlobInNewTab(`/api/results/${examData.id}/report?print=1`, null, 'text/html;charset=utf-8');
     } catch (err) {
       console.error('Printable report error:', err);
     }
