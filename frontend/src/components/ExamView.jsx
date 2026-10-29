@@ -181,13 +181,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     if (onActiveExamRunning) onActiveExamRunning(true, Date.now());
   };
 
-  // Start Practice Exam (Scores are not recorded anywhere)
+  // Start Practice Exam (Scores are not recorded anywhere; samples across all levels 1-3)
   const startPracticeExam = async () => {
     setLoadingPractice(true);
     setError('');
     try {
-      const userLevel = user?.level || 2;
-      const res = await fetch(`/api/exam/questions?mode=practice&count=20&level=${userLevel}&employeeId=${encodeURIComponent(user?.id || '')}`, {
+      const res = await fetch(`/api/exam/questions?mode=practice&count=20&employeeId=${encodeURIComponent(user?.id || '')}`, {
         headers: getAuthHeaders(user)
       });
       
@@ -613,8 +612,10 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       <div className="exam-top-bar glass-card">
         <div className="progress-info-row">
           <div className="exam-meta-tags">
-            <span className={`exam-level-pill level-${user?.level || 2}`}>
-              רמת מבחן: {user?.level === 3 ? 'רמה 3 - מתקדם' : user?.level === 1 ? 'רמה 1 - מתחיל' : 'רמה 2 - בינוני'}
+            <span className={`exam-level-pill level-${isPractice ? 2 : (user?.level || 2)}`}>
+              {isPractice
+                ? 'רמת תרגול: כל הרמות (1–3)'
+                : `רמת מבחן: ${user?.level === 3 ? 'רמה 3 - מתקדם' : user?.level === 1 ? 'רמה 1 - מתחיל' : 'רמה 2 - בינוני'}`}
             </span>
             {isPractice ? (
               <span className="exam-tag practice-pill">

@@ -839,9 +839,9 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
     return res.status(500).json({ success: false, message: 'בנק השאלות ריק' });
   }
 
-  // Filter or prioritize by level if specified
+  // Filter by employee level ONLY for official exams; in Practice Mode include all levels (1, 2, 3)
   let candidateQuestions = questions;
-  if (level && [1, 2, 3].includes(level)) {
+  if (!isPractice && level && [1, 2, 3].includes(level)) {
     const matching = questions.filter(q => q.level === level);
     if (matching.length >= count) {
       candidateQuestions = matching;
