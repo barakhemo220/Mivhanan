@@ -29,6 +29,7 @@ connectToMongoDB()
     jsonMemoryCache.clear();
     corruptedFiles.clear();
     migratePlainPasswordsToEncrypted();
+    migrateEmployeeActiveStatus();
   })
   .catch(err => console.error('MongoDB Atlas init error:', err));
 
@@ -623,6 +624,60 @@ function migratePlainPasswordsToEncrypted() {
   }
 }
 
+// Helper to determine initial active state when migrating employees without isActive boolean
+const INITIAL_ACTIVE_EMPLOYEE_NAMES = new Set(['יגאל פ', 'ברק ח', 'חנניה כ']);
+
+function normalizeEmpNameForActiveCheck(str) {
+  return String(str || '').trim().replace(/['"״׳.]/g, '').replace(/\s+/g, ' ');
+}
+
+function shouldBeInitiallyActive(emp) {
+  if (!emp) return false;
+  const cleanId = String(emp.id || '').trim().toLowerCase();
+  if (emp.isAdmin || cleanId === 'admin' || cleanId === '9999') {
+    return true;
+  }
+  const normName = normalizeEmpNameForActiveCheck(emp.name);
+  const normUser = normalizeEmpNameForActiveCheck(emp.username);
+  if (INITIAL_ACTIVE_EMPLOYEE_NAMES.has(normName) || INITIAL_ACTIVE_EMPLOYEE_NAMES.has(normUser)) {
+    return true;
+  }
+  if (normName.startsWith('חנניה כ') || normUser.startsWith('חנניה כ') || normName === 'חנניה' || normUser === 'חנניה') {
+    return true;
+  }
+  return false;
+}
+
+// Ensure every employee has an explicit boolean isActive field (initially active only for Admins + יגאל פ, ברק ח, חנניה כ)
+function migrateEmployeeActiveStatus() {
+  try {
+    const employees = readJson(EMPLOYEES_FILE, []);
+    let changedCount = 0;
+    const migrated = employees.map(emp => {
+      const cleanId = String(emp.id || '').trim().toLowerCase();
+      const isSystemAdmin = Boolean(emp.isAdmin || cleanId === 'admin' || cleanId === '9999');
+      if (isSystemAdmin && emp.isActive !== true) {
+        changedCount++;
+        return { ...emp, isActive: true };
+      }
+      if (typeof emp.isActive !== 'boolean') {
+        changedCount++;
+        return { ...emp, isActive: shouldBeInitiallyActive(emp) };
+      }
+      return emp;
+    });
+
+    if (changedCount > 0) {
+      writeJson(EMPLOYEES_FILE, migrated);
+      console.log(`🔌 Initialized isActive login status for ${changedCount} employees.`);
+    }
+  } catch (err) {
+    console.error('Employee active status migration error:', err);
+  }
+}
+
+migrateEmployeeActiveStatus();
+
 // Configurable nickname / alias map for employee login (CR-12)
 const USER_ALIASES_MAP = new Map([
   ['ברק א', 'ברק ח'],
@@ -695,6 +750,7 @@ app.post('/api/auth/login', (req, res) => {
       role: adminMatch.role,
       level: adminMatch.level || 3,
       isAdmin: true,
+      isActive: true,
       nextExamDate: null,
       scheduleNotes: ''
     };
@@ -713,32 +769,46 @@ app.post('/api/auth/login', (req, res) => {
     });
   }
 
-  // 2. Regular Employee Login Check (Strong Password & Anonymized Username)
+  // 2. Regular Employee Login Check (Strong Password, Anonymized Username & Active Switch Check)
   const normalizeHebrew = (str) => String(str || '').trim().toLowerCase().replace(/['"״׳]/g, '');
   const normUser = normalizeHebrew(username);
   const mappedAlias = USER_ALIASES_MAP.get(normUser);
 
-  const match = employees.find(emp => {
-    if (emp.isAdmin) return false;
+  // Find candidate employees matching username / name / ID / alias
+  const userCandidates = employees.filter(emp => {
     const empUser = normalizeHebrew(emp.username || emp.name);
     const empName = normalizeHebrew(emp.name);
     const empId = String(emp.id).trim().toLowerCase();
     const empAliases = Array.isArray(emp.aliases) ? emp.aliases.map(normalizeHebrew) : [];
 
-    // Flexible username & alias match (CR-12)
-    const userMatches = (
+    return (
       empUser === normUser ||
       empName === normUser ||
       empId === cleanUser ||
       (mappedAlias && (empName === mappedAlias || empUser === mappedAlias)) ||
       empAliases.includes(normUser)
     );
-
-    // Secure constant-time encrypted password verification
-    const passMatches = verifyPassword(credential, emp.password);
-
-    return userMatches && passMatches;
   });
+
+  if (userCandidates.length === 0) {
+    return res.status(401).json({
+      success: false,
+      message: 'אין משתמש כזה במערכת'
+    });
+  }
+
+  // Filter only users whose login switch is turned ON (isActive !== false, or isAdmin)
+  const activeCandidates = userCandidates.filter(emp => emp.isAdmin || emp.isActive !== false);
+
+  if (activeCandidates.length === 0) {
+    // User is turned OFF: do not disclose that account is blocked, simply report no such user
+    return res.status(401).json({
+      success: false,
+      message: 'אין משתמש כזה במערכת'
+    });
+  }
+
+  const match = activeCandidates.find(emp => verifyPassword(credential, emp.password));
 
   if (!match) {
     return res.status(401).json({
@@ -757,12 +827,13 @@ app.post('/api/auth/login', (req, res) => {
     role: match.role,
     level: match.level || 2,
     isAdmin: Boolean(match.isAdmin),
+    isActive: true,
     nextExamDate: match.nextExamDate || null,
     scheduleNotes: match.scheduleNotes || ''
   };
 
   const token = jwt.sign(
-    { id: employeeData.id, username: employeeData.username, isAdmin: false },
+    { id: employeeData.id, username: employeeData.username, isAdmin: Boolean(match.isAdmin) },
     JWT_SECRET,
     { expiresIn: '12h' }
   );
@@ -785,8 +856,8 @@ app.get('/api/exam/eligibility', authenticateToken, (req, res) => {
   const employees = readJson(EMPLOYEES_FILE, []);
   const emp = employees.find(e => String(e.id).trim() === requestedId);
 
-  if (!emp) {
-    return res.status(404).json({ success: false, message: 'העובד לא נמצא במערכת' });
+  if (!emp || (!req.user.isAdmin && !emp.isAdmin && emp.isActive === false)) {
+    return res.status(404).json({ success: false, message: 'אין משתמש כזה במערכת' });
   }
 
   const eligibility = checkExamEligibility(emp);
@@ -1901,13 +1972,14 @@ app.get('/api/admin/employees', requireAdmin, (req, res) => {
   // Decrypt passwords for the authenticated manager only
   const formatted = employees.map(emp => ({
     ...emp,
+    isActive: Boolean(emp.isAdmin || emp.isActive !== false),
     password: decryptPassword(emp.password)
   }));
   res.json({ success: true, employees: formatted });
 });
 
 app.post('/api/admin/employees', requireAdmin, (req, res) => {
-  const { id, name, username, password, department, role, level, isAdmin } = req.body;
+  const { id, name, username, password, department, role, level, isAdmin, isActive } = req.body;
   if (!name) {
     return res.status(400).json({ success: false, message: 'נדרש שם עובד' });
   }
@@ -1948,6 +2020,7 @@ app.post('/api/admin/employees', requireAdmin, (req, res) => {
     role: role || 'מכשירן',
     level: level ? parseInt(level, 10) : 2,
     isAdmin: Boolean(isAdmin),
+    isActive: Boolean(isAdmin) ? true : (isActive !== undefined ? Boolean(isActive) : true),
     email: `${assignedId}@mivhanan.internal`,
     nextExamDate: null,
     scheduleNotes: ''
@@ -1961,6 +2034,41 @@ app.post('/api/admin/employees', requireAdmin, (req, res) => {
       ...newEmp, 
       password: assignedPass 
     } 
+  });
+});
+
+// Toggle or update employee active (On/Off) status
+app.patch('/api/admin/employees/:id/active', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  const employees = readJson(EMPLOYEES_FILE, []);
+  const empIndex = employees.findIndex(e => String(e.id).trim() === String(id).trim());
+
+  if (empIndex === -1) {
+    return res.status(404).json({ success: false, message: 'העובד לא נמצא במערכת' });
+  }
+
+  const targetEmp = employees[empIndex];
+  const cleanId = String(targetEmp.id).trim().toLowerCase();
+  if (targetEmp.isAdmin || cleanId === 'admin' || cleanId === '9999') {
+    return res.status(400).json({ success: false, message: 'משתמשי Admin נשארים דלוקים תמיד ולא ניתן לכבותם' });
+  }
+
+  const nextActive = typeof isActive === 'boolean' ? isActive : !(targetEmp.isActive !== false);
+  employees[empIndex].isActive = nextActive;
+  employees[empIndex].updatedAt = new Date().toISOString();
+  writeJson(EMPLOYEES_FILE, employees);
+
+  res.json({
+    success: true,
+    message: nextActive
+      ? `המשתמש "${targetEmp.name}" הופעל (דלוק) וכעת מורשה להיכנס למערכת`
+      : `המשתמש "${targetEmp.name}" כובה וכעת אינו יכול להיכנס למערכת`,
+    employee: {
+      ...employees[empIndex],
+      password: decryptPassword(employees[empIndex].password)
+    }
   });
 });
 
@@ -1997,7 +2105,7 @@ app.patch('/api/admin/employees/:id/level', requireAdmin, (req, res) => {
 // Update full employee details
 app.put('/api/admin/employees/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
-  const { name, username, password, department, role, level, isAdmin } = req.body;
+  const { name, username, password, department, role, level, isAdmin, isActive } = req.body;
 
   const employees = readJson(EMPLOYEES_FILE, []);
   const empIndex = employees.findIndex(e => String(e.id).trim() === String(id).trim());
@@ -2019,7 +2127,13 @@ app.put('/api/admin/employees/:id', requireAdmin, (req, res) => {
   if (department !== undefined) employees[empIndex].department = department;
   if (role !== undefined) employees[empIndex].role = role;
   if (level !== undefined) employees[empIndex].level = parseInt(level, 10);
-  if (isAdmin !== undefined) employees[empIndex].isAdmin = Boolean(isAdmin);
+  if (isAdmin !== undefined) {
+    employees[empIndex].isAdmin = Boolean(isAdmin);
+    if (Boolean(isAdmin)) employees[empIndex].isActive = true;
+  }
+  if (isActive !== undefined && !employees[empIndex].isAdmin) {
+    employees[empIndex].isActive = Boolean(isActive);
+  }
 
   writeJson(EMPLOYEES_FILE, employees);
 

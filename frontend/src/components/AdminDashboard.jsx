@@ -32,7 +32,8 @@ import {
   Archive,
   Copy,
   KeyRound,
-  ShieldCheck
+  ShieldCheck,
+  Power
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import SavedExamModal from './SavedExamModal';
@@ -108,6 +109,7 @@ export default function AdminDashboard({ user, onLogout }) {
 
   // Employee level update and filter state
   const [updatingEmpId, setUpdatingEmpId] = useState(null);
+  const [togglingActiveId, setTogglingActiveId] = useState(null);
   const [recentlyUpdatedEmpId, setRecentlyUpdatedEmpId] = useState(null);
   const [empSearchTerm, setEmpSearchTerm] = useState('');
   const [empDeptFilter, setEmpDeptFilter] = useState('all');
@@ -548,6 +550,42 @@ export default function AdminDashboard({ user, onLogout }) {
       showToast('שגיאת תקשורת בעדכון רמת העובד', 'error');
     } finally {
       setUpdatingEmpId(null);
+    }
+  };
+
+  const handleToggleEmployeeActive = async (emp) => {
+    const cleanId = String(emp.id || '').trim().toLowerCase();
+    if (emp.isAdmin || cleanId === 'admin' || cleanId === '9999') {
+      showToast('משתמשי Admin דלוקים תמיד ולא ניתן לכבותם', 'warning');
+      return;
+    }
+
+    const nextActive = !(emp.isActive !== false);
+    setTogglingActiveId(emp.id);
+    try {
+      const res = await authFetch(`/api/admin/employees/${emp.id}/active`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: nextActive })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmployees(prev =>
+          prev.map(item => (item.id === emp.id ? { ...item, isActive: nextActive } : item))
+        );
+        showToast(
+          nextActive
+            ? `המשתמש "${emp.name}" הופעל (דלוק) וכעת מורשה להיכנס למערכת`
+            : `המשתמש "${emp.name}" כובה וכעת אינו יכול להיכנס למערכת`,
+          nextActive ? 'success' : 'warning'
+        );
+      } else {
+        showToast(data.message || 'שגיאה בעדכון סטטוס המשתמש', 'error');
+      }
+    } catch (err) {
+      showToast('שגיאת תקשורת בעדכון סטטוס המשתמש', 'error');
+    } finally {
+      setTogglingActiveId(null);
     }
   };
 
@@ -1725,11 +1763,15 @@ export default function AdminDashboard({ user, onLogout }) {
                     <th>שינוי רמת מבחן (1-3)</th>
                     <th>הרשאות מנהל</th>
                     <th>פעולות</th>
+                    <th>כניסת משתמש</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEmployees.map(emp => (
-                    <tr key={emp.id} id={`emp-row-${emp.id}`}>
+                  {filteredEmployees.map(emp => {
+                    const isSystemAdmin = Boolean(emp.isAdmin || String(emp.id).trim().toLowerCase() === 'admin' || String(emp.id).trim() === '9999');
+                    const isEmpActive = isSystemAdmin || emp.isActive !== false;
+                    return (
+                    <tr key={emp.id} id={`emp-row-${emp.id}`} className={!isEmpActive ? 'emp-row-inactive' : ''}>
                       <td className="font-mono font-bold text-cyan">{emp.id}</td>
                       <td className="font-bold">{emp.name}</td>
                       <td>
@@ -1819,7 +1861,7 @@ export default function AdminDashboard({ user, onLogout }) {
                             <Edit3 size={13} />
                             <span>ערוך</span>
                           </button>
-                          {emp.isAdmin || String(emp.id).trim() === 'admin' || String(emp.id).trim() === '9999' ? (
+                          {isSystemAdmin ? (
                             <span className="text-muted" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
                               מוגן (Admin)
                             </span>
@@ -1836,11 +1878,34 @@ export default function AdminDashboard({ user, onLogout }) {
                           )}
                         </div>
                       </td>
+                      <td className="emp-power-cell">
+                        <button
+                          type="button"
+                          id={`btn-toggle-active-${emp.id}`}
+                          className={`btn-emp-power ${isEmpActive ? 'power-on' : 'power-off'}`}
+                          onClick={() => handleToggleEmployeeActive(emp)}
+                          disabled={togglingActiveId === emp.id || isSystemAdmin}
+                          title={
+                            isSystemAdmin
+                              ? 'משתמש Admin דלוק תמיד'
+                              : isEmpActive
+                                ? `המשתמש ${emp.name} דלוק (מורשה להיכנס) — לחץ לכיבוי`
+                                : `המשתמש ${emp.name} כבוי (חסום מכניסה) — לחץ להדלקה`
+                          }
+                        >
+                          <span className="power-switch-track">
+                            <span className="power-switch-thumb" />
+                          </span>
+                          <Power size={13} />
+                          <span>{isEmpActive ? 'דלוק' : 'כבוי'}</span>
+                        </button>
+                      </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                   {filteredEmployees.length === 0 && (
                     <tr>
-                      <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                      <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                         לא נמצאו עובדים התואמים לחיפוש ולסינון הנוכחי
                       </td>
                     </tr>

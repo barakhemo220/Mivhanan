@@ -21,6 +21,7 @@ const EmployeeSchema = new mongoose.Schema({
   role: String,
   level: Number,
   isAdmin: { type: Boolean, default: false },
+  isActive: { type: Boolean },
   email: String,
   nextExamDate: String,
   scheduleNotes: String,

@@ -13,7 +13,8 @@
     "scheduleNotes": "מבחן בוצע ב-25.10.2026 (ציון: 5%)",
     "scheduleUpdatedAt": "2026-10-25T21:54:47.696Z",
     "createdAt": "2026-10-26T09:03:27.645Z",
-    "updatedAt": "2026-10-26T09:03:27.645Z"
+    "updatedAt": "2026-10-26T09:03:27.645Z",
+    "isActive": false
   },
   {
     "id": "emp_02",
@@ -29,7 +30,8 @@
     "scheduleNotes": "מבחן בוצע ב-25.10.2026 (ציון: 0%)",
     "scheduleUpdatedAt": "2026-10-25T21:28:28.258Z",
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_03",
@@ -45,7 +47,8 @@
     "scheduleNotes": "מבחן בוצע ב-26.10.2026 (ציון: 0%)",
     "scheduleUpdatedAt": "2026-10-26T04:34:16.137Z",
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_04",
@@ -61,7 +64,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_05",
@@ -77,7 +81,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_06",
@@ -93,7 +98,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_07",
@@ -109,7 +115,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_08",
@@ -125,7 +132,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_09",
@@ -141,7 +149,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_10",
@@ -157,7 +166,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_11",
@@ -173,7 +183,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.646Z",
-    "updatedAt": "2026-10-26T09:03:27.646Z"
+    "updatedAt": "2026-10-26T09:03:27.646Z",
+    "isActive": false
   },
   {
     "id": "emp_12",
@@ -189,7 +200,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_13",
@@ -205,7 +217,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_14",
@@ -221,7 +234,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_15",
@@ -237,7 +251,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_16",
@@ -253,7 +268,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_17",
@@ -269,7 +285,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_18",
@@ -285,7 +302,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_19",
@@ -301,7 +319,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_20",
@@ -317,7 +336,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_21",
@@ -333,7 +353,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_22",
@@ -349,7 +370,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_23",
@@ -365,7 +387,8 @@
     "scheduleNotes": "מבחן בוצע ב-26.10.2026 (ציון: 5%)",
     "scheduleUpdatedAt": "2026-10-26T07:52:07.289Z",
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": true
   },
   {
     "id": "emp_24",
@@ -381,7 +404,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_25",
@@ -397,7 +421,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_26",
@@ -413,7 +438,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_27",
@@ -429,7 +455,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": true
   },
   {
     "id": "emp_28",
@@ -445,7 +472,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_29",
@@ -461,7 +489,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_30",
@@ -477,7 +506,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_31",
@@ -493,7 +523,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_32",
@@ -509,7 +540,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_33",
@@ -525,7 +557,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_34",
@@ -541,7 +574,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_35",
@@ -557,7 +591,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_36",
@@ -573,7 +608,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "emp_37",
@@ -589,7 +625,8 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": null,
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": false
   },
   {
     "id": "admin",
@@ -605,6 +642,7 @@
     "scheduleNotes": "",
     "scheduleUpdatedAt": "2026-10-26T09:03:26.094Z",
     "createdAt": "2026-10-26T09:03:27.647Z",
-    "updatedAt": "2026-10-26T09:03:27.647Z"
+    "updatedAt": "2026-10-26T09:03:27.647Z",
+    "isActive": true
   }
 ]

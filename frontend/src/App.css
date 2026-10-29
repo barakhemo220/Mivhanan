@@ -3381,6 +3381,98 @@
   box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
 }
 
+/* Employee On/Off Login Power Switch Button (Left Column) */
+.emp-power-cell {
+  white-space: nowrap;
+}
+
+.btn-emp-power {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-emp-power.power-on {
+  background: #ecfdf5;
+  border: 1.5px solid #6ee7b7;
+  color: #047857;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
+}
+
+.btn-emp-power.power-on:hover:not(:disabled) {
+  background: #d1fae5;
+  border-color: #10b981;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+}
+
+.btn-emp-power.power-off {
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  color: #64748b;
+}
+
+.btn-emp-power.power-off:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #334155;
+  transform: translateY(-1px);
+}
+
+.btn-emp-power:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
+
+.power-switch-track {
+  position: relative;
+  display: inline-block;
+  width: 26px;
+  height: 15px;
+  border-radius: 9999px;
+  background: #94a3b8;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-emp-power.power-on .power-switch-track {
+  background: #10b981;
+}
+
+.power-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-emp-power.power-on .power-switch-thumb {
+  transform: translateX(11px);
+}
+
+tr.emp-row-inactive td {
+  background: #fafafa;
+  color: #64748b;
+}
+
+tr.emp-row-inactive td.font-bold {
+  color: #475569;
+}
+
 /* Action Delete Buttons for Admin Tables */
 .btn-table-delete {
   display: inline-flex;
