@@ -1689,21 +1689,21 @@ export default function AdminDashboard({ user, onLogout }) {
                   </button>
                   <button 
                     type="button" 
-                    className={`chip-btn ${empLevelFilter === '1' ? 'active' : ''}`}
+                    className={`chip-btn chip-level-1 ${empLevelFilter === '1' ? 'active' : ''}`}
                     onClick={() => setEmpLevelFilter('1')}
                   >
                     רמה 1 ({employees.filter(e => (e.level || 1) === 1).length})
                   </button>
                   <button 
                     type="button" 
-                    className={`chip-btn ${empLevelFilter === '2' ? 'active' : ''}`}
+                    className={`chip-btn chip-level-2 ${empLevelFilter === '2' ? 'active' : ''}`}
                     onClick={() => setEmpLevelFilter('2')}
                   >
                     רמה 2 ({employees.filter(e => (e.level || 1) === 2).length})
                   </button>
                   <button 
                     type="button" 
-                    className={`chip-btn ${empLevelFilter === '3' ? 'active' : ''}`}
+                    className={`chip-btn chip-level-3 ${empLevelFilter === '3' ? 'active' : ''}`}
                     onClick={() => setEmpLevelFilter('3')}
                   >
                     רמה 3 ({employees.filter(e => (e.level || 1) === 3).length})
