@@ -7,6 +7,7 @@ import {
   Clock, 
   Printer, 
   RotateCcw, 
+  HelpCircle,
   Maximize2,
   FileCheck,
   LogOut,
