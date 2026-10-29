@@ -39,6 +39,19 @@ import SavedExamModal from './SavedExamModal';
 import EditEmployeeModal from './EditEmployeeModal';
 import { getAuthHeaders, downloadAuthenticatedBlob, openAuthenticatedBlobInNewTab } from '../utils/authClient';
 
+const DEFAULT_DEPARTMENTS = [
+  'מכשיריית חומר גלם',
+  "מכשיריית אשלג ב'",
+  'מכשיריית ברום / כלור',
+  'מכשיריית גלעון',
+  'מכשיריית מלחים',
+  'מכשיריית מקלף',
+  'מכשיריית תחנת כוח',
+  'הנדסת מכשור',
+  'מסגריית מכשור',
+  'הנהלת מכשור ובקרה'
+];
+
 export default function AdminDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('results'); // results, questions, employees
   const [results, setResults] = useState([]);
@@ -1185,7 +1198,7 @@ export default function AdminDashboard({ user, onLogout }) {
 
       {/* Tab 2: 4-Month Periodic Exam Tracking & Scheduling */}
       {activeTab === 'schedule' && (() => {
-        const allDepartments = Array.from(new Set(employees.map(e => e.department).filter(Boolean)));
+        const allDepartments = Array.from(new Set([...DEFAULT_DEPARTMENTS, ...employees.map(e => e.department).filter(Boolean)]));
 
         return (
           <div className="admin-tab-content glass-card fade-in" id="admin-schedule-content">
@@ -1594,7 +1607,7 @@ export default function AdminDashboard({ user, onLogout }) {
 
       {/* Tab 3: Employees Management */}
       {activeTab === 'employees' && (() => {
-        const allDepartments = Array.from(new Set(employees.map(e => e.department).filter(Boolean)));
+        const allDepartments = Array.from(new Set([...DEFAULT_DEPARTMENTS, ...employees.map(e => e.department).filter(Boolean)]));
         const filteredEmployees = employees.filter(emp => {
           const term = empSearchTerm.trim().toLowerCase();
           const matchesSearch = !term || 
@@ -2167,8 +2180,16 @@ export default function AdminDashboard({ user, onLogout }) {
                   onChange={(e) => {
                     const dept = e.target.value;
                     setNewEmpDept(dept);
-                    const cleanBase = dept.replace(/^מכשיריית\s*/, '');
-                    setNewEmpRole(`מכשירן ${cleanBase}`);
+                    if (dept === 'הנדסת מכשור') {
+                      setNewEmpRole('הנדסת מכשור');
+                    } else if (dept === 'מסגריית מכשור') {
+                      setNewEmpRole('מסגר מכשור');
+                    } else if (dept === 'הנהלת מכשור ובקרה') {
+                      setNewEmpRole('מנהל מכשור ובקרה');
+                    } else {
+                      const cleanBase = dept.replace(/^מכשיריית\s*/, '');
+                      setNewEmpRole(`מכשירן ${cleanBase}`);
+                    }
                   }}
                 >
                   <option value="מכשיריית חומר גלם">מכשיריית חומר גלם</option>
@@ -2178,6 +2199,8 @@ export default function AdminDashboard({ user, onLogout }) {
                   <option value="מכשיריית מלחים">מכשיריית מלחים</option>
                   <option value="מכשיריית מקלף">מכשיריית מקלף</option>
                   <option value="מכשיריית תחנת כוח">מכשיריית תחנת כוח</option>
+                  <option value="הנדסת מכשור">הנדסת מכשור</option>
+                  <option value="מסגריית מכשור">מסגריית מכשור</option>
                   <option value="הנהלת מכשור ובקרה">הנהלת מכשור ובקרה</option>
                 </select>
               </div>

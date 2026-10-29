@@ -131,6 +131,8 @@ export default function EditEmployeeModal({
               <option value="מכשיריית מלחים">מכשיריית מלחים</option>
               <option value="מכשיריית מקלף">מכשיריית מקלף</option>
               <option value="מכשיריית תחנת כוח">מכשיריית תחנת כוח</option>
+              <option value="הנדסת מכשור">הנדסת מכשור</option>
+              <option value="מסגריית מכשור">מסגריית מכשור</option>
               <option value="הנהלת מכשור ובקרה">הנהלת מכשור ובקרה</option>
             </select>
           </div>
