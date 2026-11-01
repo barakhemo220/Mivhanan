@@ -281,15 +281,41 @@ export default function AdminDashboard({ user, onLogout }) {
     }
   };
 
-  const handleToggleRevealResults = async () => {
-    const nextReveal = !tournamentData?.resultsRevealed;
+  const handleEndTournament = async () => {
     setIsSavingTournament(true);
     try {
       const res = await authFetch('/api/admin/tournament', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          resultsRevealed: nextReveal
+          endTournament: true,
+          resultsRevealed: true
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.tournament) {
+        setTournamentData(data.tournament);
+        showToast('הטורניר הסתיים! סיכום התוצאות הקיימות מוצג כעת על הפודיום 🏆', 'success');
+      } else {
+        showToast(data.message || 'שגיאה בסיום הטורניר', 'error');
+      }
+    } catch (err) {
+      showToast('שגיאת תקשורת בסיום הטורניר', 'error');
+    } finally {
+      setIsSavingTournament(false);
+    }
+  };
+
+  const handleToggleRevealResults = async () => {
+    const nextReveal = !tournamentData?.isResultsVisible;
+    setIsSavingTournament(true);
+    try {
+      const res = await authFetch('/api/admin/tournament', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resultsRevealed: nextReveal,
+          ...(nextReveal === false ? { endTournament: false } : {})
         })
       });
       const data = await res.json();
@@ -1182,14 +1208,34 @@ export default function AdminDashboard({ user, onLogout }) {
                 <div className="tournament-scheduler-top-actions">
                   <button
                     type="button"
-                    className={`btn btn-sm ${tournamentData?.resultsRevealed ? 'btn-secondary' : 'btn-primary'}`}
-                    onClick={handleToggleRevealResults}
+                    id="btn-finish-tournament"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleEndTournament}
                     disabled={isSavingTournament}
-                    title="חשיפה או הסתרה של חלון תוצאות התחרות והפודיום"
+                    style={{
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      borderColor: '#b45309',
+                      color: '#ffffff',
+                      fontWeight: 800
+                    }}
+                    title="סיום הטורניר ושקלול מיידי של כל התוצאות הקיימות אל חלון הפודיום"
                   >
-                    {tournamentData?.resultsRevealed ? <Lock size={15} /> : <Unlock size={15} />}
-                    <span>{tournamentData?.resultsRevealed ? 'הסתר חלון תוצאות' : 'חשוף תוצאות טורניר כעת'}</span>
+                    <Trophy size={15} />
+                    <span>סיים טורניר</span>
                   </button>
+
+                  {tournamentData?.isResultsVisible && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={handleToggleRevealResults}
+                      disabled={isSavingTournament}
+                      title="הסתרת חלון תוצאות הטורניר והפודיום"
+                    >
+                      <Lock size={15} />
+                      <span>הסתר פודיום תוצאות</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"

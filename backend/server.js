@@ -502,6 +502,7 @@ function getTournamentConfig() {
     title: 'אליפות המכשור והבקרה',
     startDate: '',
     endDate: '',
+    isEnded: false,
     resultsRevealed: false,
     resetAt: null,
     updatedAt: null
@@ -526,10 +527,7 @@ function parseLocalDateBounds(startDateStr, endDateStr) {
 }
 
 function getTournamentResultsMap(tournament, results) {
-  const bounds = parseLocalDateBounds(tournament.startDate, tournament.endDate);
   const map = new Map();
-  if (!bounds) return map;
-
   const resetTime = tournament.resetAt ? new Date(tournament.resetAt).getTime() : 0;
 
   for (const r of results) {
@@ -538,12 +536,10 @@ function getTournamentResultsMap(tournament, results) {
     if (isNaN(subTime)) continue;
     if (resetTime && subTime < resetTime) continue;
 
-    if (subTime >= bounds.start.getTime() && subTime <= bounds.end.getTime()) {
-      const cleanId = String(r.employeeId).trim();
-      const existing = map.get(cleanId);
-      if (!existing || new Date(r.submittedAt) > new Date(existing.submittedAt)) {
-        map.set(cleanId, r);
-      }
+    const cleanId = String(r.employeeId).trim();
+    const existing = map.get(cleanId);
+    if (!existing || new Date(r.submittedAt) > new Date(existing.submittedAt)) {
+      map.set(cleanId, r);
     }
   }
   return map;
@@ -561,8 +557,10 @@ function computeTournamentSummary() {
 
   const bounds = parseLocalDateBounds(tournament.startDate, tournament.endDate);
   const now = new Date();
-  let status = 'not_scheduled';
-  if (bounds) {
+  let status = 'unscheduled';
+  if (tournament.isEnded) {
+    status = 'ended';
+  } else if (bounds) {
     if (now < bounds.start) {
       status = 'upcoming';
     } else if (now > bounds.end) {
@@ -587,11 +585,12 @@ function computeTournamentSummary() {
     };
   });
 
-  const completedCount = employeeStatusList.filter(e => e.hasCompleted).length;
-  const notCompletedCount = employeeStatusList.length - completedCount;
+  const activeEmployeeStatuses = employeeStatusList.filter(e => e.isActive);
+  const completedCount = activeEmployeeStatuses.filter(e => e.hasCompleted).length;
+  const notCompletedCount = activeEmployeeStatuses.length - completedCount;
 
-  // Results are visible only after the tournament end date OR when admin explicitly reveals them
-  const isResultsVisible = Boolean(tournament.resultsRevealed || status === 'ended');
+  // Results are visible when tournament ended (by date or "סיים טורניר" button) OR when admin explicitly reveals them
+  const isResultsVisible = Boolean(tournament.isEnded || tournament.resultsRevealed || status === 'ended');
 
   // 1. Highest Score in the Tournament (Anonymous: Score + Department only, no employee name)
   let highestScore = null;
@@ -678,33 +677,47 @@ function computeTournamentSummary() {
     }));
 
   const podium = departmentStandings.slice(0, 3);
+  const leaderboardObj = isResultsVisible
+    ? {
+        highestScore,
+        podium,
+        departmentStandings
+      }
+    : null;
+
+  const tournamentSummaryObj = {
+    id: tournament.id,
+    title: tournament.title || 'אליפות המכשור והבקרה',
+    startDate: tournament.startDate || '',
+    endDate: tournament.endDate || '',
+    startDateFormatted: tournament.startDate ? formatDateHe(tournament.startDate) : '',
+    endDateFormatted: tournament.endDate ? formatDateHe(tournament.endDate) : '',
+    isEnded: Boolean(tournament.isEnded),
+    resultsRevealed: Boolean(tournament.resultsRevealed),
+    isResultsVisible,
+    status,
+    updatedAt: tournament.updatedAt,
+    completedCount,
+    notCompletedCount,
+    totalEmployees: activeEmployeeStatuses.length,
+    employeeStatuses: employeeStatusList,
+    employeeStatusList,
+    leaderboard: leaderboardObj,
+    highestScore: isResultsVisible ? highestScore : null,
+    podium: isResultsVisible ? podium : []
+  };
 
   return {
-    tournament: {
-      id: tournament.id,
-      title: tournament.title || 'אליפות המכשור והבקרה',
-      startDate: tournament.startDate || '',
-      endDate: tournament.endDate || '',
-      startDateFormatted: tournament.startDate ? formatDateHe(tournament.startDate) : '',
-      endDateFormatted: tournament.endDate ? formatDateHe(tournament.endDate) : '',
-      resultsRevealed: Boolean(tournament.resultsRevealed),
-      status,
-      updatedAt: tournament.updatedAt
-    },
+    tournament: tournamentSummaryObj,
     stats: {
-      totalEmployees: employeeStatusList.length,
+      totalEmployees: activeEmployeeStatuses.length,
       completedCount,
       notCompletedCount
     },
+    employeeStatuses: employeeStatusList,
     employeeStatusList,
     isResultsVisible,
-    leaderboard: isResultsVisible
-      ? {
-          highestScore,
-          podium,
-          departmentStandings
-        }
-      : null
+    leaderboard: leaderboardObj
   };
 }
 
@@ -725,11 +738,28 @@ function checkExamEligibility(employee) {
   const summary = computeTournamentSummary();
   const bounds = parseLocalDateBounds(tournament.startDate, tournament.endDate);
 
+  const empStatus = summary.employeeStatusList.find(e => String(e.id).trim() === String(employee.id).trim());
+  const hasCompleted = Boolean(empStatus?.hasCompleted);
+
+  if (tournament.isEnded) {
+    return {
+      canTakeExam: false,
+      reason: 'TOURNAMENT_ENDED',
+      hasCompletedTournament: hasCompleted,
+      nextExamDate: tournament.endDate || null,
+      targetDateFormatted: tournament.endDate ? formatDateHe(tournament.endDate) : '',
+      windowOpenDate: tournament.startDate || null,
+      windowOpenDateFormatted: tournament.startDate ? formatDateHe(tournament.startDate) : '',
+      tournamentSummary: summary.tournament,
+      message: 'הטורניר הסתיים! ניתן לצפות בתוצאות האליפות ובפודיום המכשיריות המנצחות.'
+    };
+  }
+
   if (!bounds) {
     return {
       canTakeExam: false,
       reason: 'NO_SCHEDULED_EXAM',
-      tournamentSummary: summary,
+      tournamentSummary: summary.tournament,
       message: 'טרם נקבע מועד לטורניר הקרוב במערכת. ניתן לבצע תרגול חופשי בינתיים.'
     };
   }
@@ -737,9 +767,6 @@ function checkExamEligibility(employee) {
   const now = new Date();
   const startDateFormatted = formatDateHe(tournament.startDate);
   const endDateFormatted = formatDateHe(tournament.endDate);
-
-  const empStatus = summary.employeeStatusList.find(e => String(e.id).trim() === String(employee.id).trim());
-  const hasCompleted = Boolean(empStatus?.hasCompleted);
 
   if (now > bounds.end) {
     return {
@@ -750,7 +777,7 @@ function checkExamEligibility(employee) {
       targetDateFormatted: endDateFormatted,
       windowOpenDate: tournament.startDate,
       windowOpenDateFormatted: startDateFormatted,
-      tournamentSummary: summary,
+      tournamentSummary: summary.tournament,
       message: `הטורניר הסתיים בתאריך ${endDateFormatted}. ניתן לצפות בתוצאות האליפות ובפודיום המכשיריות המנצחות!`
     };
   }
@@ -768,7 +795,7 @@ function checkExamEligibility(employee) {
       windowOpenDate: tournament.startDate,
       windowOpenDateFormatted: startDateFormatted,
       daysUntilOpen,
-      tournamentSummary: summary,
+      tournamentSummary: summary.tournament,
       message: `הטורניר ייפתח בתאריך ${startDateFormatted} ויימשך עד ${endDateFormatted}. נותרו עוד ${daysUntilOpen} ימים לפתיחת הטורניר.`
     };
   }
@@ -782,7 +809,7 @@ function checkExamEligibility(employee) {
       targetDateFormatted: endDateFormatted,
       windowOpenDate: tournament.startDate,
       windowOpenDateFormatted: startDateFormatted,
-      tournamentSummary: summary,
+      tournamentSummary: summary.tournament,
       message: `כבר ביצעת את מבחן הטורניר הנוכחי! תוצאות האליפות ופודיום המכשיריות יוצגו בסיום הטורניר (${endDateFormatted}).`
     };
   }
@@ -800,7 +827,7 @@ function checkExamEligibility(employee) {
     windowOpenDateFormatted: startDateFormatted,
     diffDays,
     isOverdue: false,
-    tournamentSummary: summary,
+    tournamentSummary: summary.tournament,
     message: `הטורניר פעיל כעת (${startDateFormatted} – ${endDateFormatted}). בהצלחה!`
   };
 }
@@ -1784,9 +1811,9 @@ app.get('/api/tournament/status', authenticateToken, (req, res) => {
   });
 });
 
-// Update Tournament Schedule, Reveal Results, or Start New Tournament (Admin Only)
+// Update Tournament Schedule, End Tournament, Reveal Results, or Start New Tournament (Admin Only)
 app.put('/api/admin/tournament', requireAdmin, (req, res) => {
-  const { startDate, endDate, title, resultsRevealed, resetTournament } = req.body;
+  const { startDate, endDate, title, resultsRevealed, resetTournament, resetResults, endTournament } = req.body;
   const current = getTournamentConfig();
 
   if (startDate !== undefined && endDate !== undefined && startDate && endDate) {
@@ -1799,19 +1826,33 @@ app.put('/api/admin/tournament', requireAdmin, (req, res) => {
     }
   }
 
+  const isReset = Boolean(resetTournament || resetResults);
+  let nextIsEnded = current.isEnded || false;
+  if (endTournament !== undefined) {
+    nextIsEnded = Boolean(endTournament);
+  } else if (isReset || (startDate !== undefined && endDate !== undefined && startDate && endDate)) {
+    nextIsEnded = false;
+  }
+
   const updated = {
     ...current,
     id: 'tournament_current',
     title: title !== undefined ? String(title).trim() : current.title,
-    startDate: startDate !== undefined ? String(startDate).trim() : current.startDate,
-    endDate: endDate !== undefined ? String(endDate).trim() : current.endDate,
-    resultsRevealed: resultsRevealed !== undefined ? Boolean(resultsRevealed) : current.resultsRevealed,
-    resetAt: resetTournament ? new Date().toISOString() : current.resetAt,
+    startDate: startDate !== undefined ? String(startDate || '').trim() : current.startDate,
+    endDate: endDate !== undefined ? String(endDate || '').trim() : current.endDate,
+    isEnded: nextIsEnded,
+    resultsRevealed: endTournament
+      ? true
+      : resultsRevealed !== undefined
+      ? Boolean(resultsRevealed)
+      : current.resultsRevealed,
+    resetAt: isReset ? new Date().toISOString() : current.resetAt,
     updatedAt: new Date().toISOString()
   };
 
-  if (resetTournament) {
+  if (isReset) {
     updated.resultsRevealed = false;
+    updated.isEnded = false;
   }
 
   writeJson(TOURNAMENT_FILE, updated);
@@ -1819,8 +1860,10 @@ app.put('/api/admin/tournament', requireAdmin, (req, res) => {
 
   res.json({
     success: true,
-    message: resetTournament
+    message: isReset
       ? 'טורניר חדש אופס והוגדר בהצלחה!'
+      : endTournament
+      ? 'הטורניר הסתיים! תוצאות האליפות ופודיום המכשיריות מוצגים כעת 🏆'
       : 'הגדרות ומועדי הטורניר עודכנו בהצלחה!',
     ...summary
   });
