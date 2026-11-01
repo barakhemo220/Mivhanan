@@ -21,10 +21,12 @@ import {
   Info,
   GraduationCap,
   Award,
-  FileText
+  FileText,
+  Trophy
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import ConfirmSubmitModal from './ConfirmSubmitModal';
+import TournamentPodium from './TournamentPodium';
 import { getAuthHeaders } from '../utils/authClient';
 
 const OPTION_LETTERS = ['א', 'ב', 'ג', 'ד'];
@@ -136,8 +138,14 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       }
 
       if (!res.ok || !data.success) {
-        // Schedule Restriction: No scheduled exam or too early
-        if (data.canTakeExam === false || data.reason === 'NO_SCHEDULED_EXAM' || data.reason === 'TOO_EARLY') {
+        // Schedule / Tournament Restriction
+        if (
+          data.canTakeExam === false ||
+          data.reason === 'NO_SCHEDULED_EXAM' ||
+          data.reason === 'TOO_EARLY' ||
+          data.reason === 'ALREADY_COMPLETED' ||
+          data.reason === 'TOURNAMENT_ENDED'
+        ) {
           setRestriction(data);
           setQuestions([]);
           setExamStarted(false);
@@ -497,6 +505,91 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   }
 
   // -------------------------------------------------------------
+  // Restriction 3 & 4: Already Completed Tournament OR Tournament Ended
+  // -------------------------------------------------------------
+  if (restriction && (restriction.reason === 'ALREADY_COMPLETED' || restriction.reason === 'TOURNAMENT_ENDED')) {
+    const isCompleted = restriction.reason === 'ALREADY_COMPLETED';
+    const tournSummary = restriction.tournamentSummary;
+
+    return (
+      <div className="schedule-restriction-container fade-in" id="restriction-tournament-status">
+        {tournSummary?.isResultsVisible && (
+          <div style={{ width: '100%', maxWidth: 960, marginBottom: '1.5rem' }}>
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
+
+        <div className="schedule-card-wrapper glass-card">
+          <div className="schedule-badge-icon badge-lobby">
+            <Trophy size={48} className="icon-lobby" />
+          </div>
+
+          <h1 className="schedule-title">
+            {isCompleted ? 'השתתפותך בטורניר נקלטה בהצלחה! 🏆' : 'טורניר המכשיריות הסתיים'}
+          </h1>
+          <p className="schedule-subtitle">
+            {isCompleted
+              ? `כל הכבוד ${user?.name}! כבר ביצעת את מבחן הטורניר הנוכחי. התוצאות ישוקללו בממוצע של ${user?.department} וייחשפו בסיום התחרות.`
+              : `חלון הזמן של טורניר המכשיריות הסתיים (${restriction.targetDateFormatted || ''}). ניתן לצפות בתוצאות התחרות או להמשיך לתרגל חופשי.`}
+          </p>
+
+          <div className="employee-info-box">
+            <div className="info-chip">
+              <span className="info-label">עובד:</span>
+              <span className="info-val">{user?.name}</span>
+            </div>
+            <div className="info-chip">
+              <span className="info-label">מכשיריה:</span>
+              <span className="info-val">{user?.department}</span>
+            </div>
+            <div className="info-chip">
+              <span className="info-label">סטטוס בטורניר:</span>
+              <span className={`info-val ${isCompleted ? 'status-open-tag' : 'status-blocked-tag'}`}>
+                {isCompleted ? 'ביצע מבחן טורניר ✓' : 'הטורניר הסתיים'}
+              </span>
+            </div>
+          </div>
+
+          <div className="schedule-actions-row">
+            <button
+              type="button"
+              id="btn-start-practice-completed"
+              className="btn btn-primary btn-practice"
+              onClick={startPracticeExam}
+              disabled={loadingPractice}
+              title="כניסה למבחן במצב תרגול חופשי מכל הרמות"
+            >
+              <GraduationCap size={18} />
+              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול חופשי (כל הרמות)'}</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => fetchExamQuestions(true)}
+              disabled={isRefreshingStatus}
+            >
+              <RefreshCw size={16} className={isRefreshingStatus ? 'spin' : ''} />
+              <span>{isRefreshingStatus ? 'בודק נתונים...' : 'רענן סטטוס טורניר'}</span>
+            </button>
+
+            {onLogout && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onLogout}
+              >
+                <LogOut size={16} />
+                <span>יציאה מהמערכת</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
   // Pre-Exam Lobby: Scheduled Exam Ready, User Chooses Start or Practice
   // -------------------------------------------------------------
   if (!examStarted && !restriction && questions.length > 0) {
@@ -504,12 +597,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
       <div className="schedule-restriction-container fade-in" id="exam-welcome-lobby">
         <div className="schedule-card-wrapper glass-card">
           <div className="schedule-badge-icon badge-lobby">
-            <Award size={48} className="icon-lobby" />
+            <Trophy size={48} className="icon-lobby" />
           </div>
 
-          <h1 className="schedule-title">מבחן תקופתי במכשור ובקרה</h1>
+          <h1 className="schedule-title">מבחן טורניר המכשיריות במכשור ובקרה 🏆</h1>
           <p className="schedule-subtitle">
-            שלום <strong>{user?.name}</strong>, נקבע עבורך מועד בחינה פעיל במערכת. ודא את פרטיך ובחר כיצד להמשיך:
+            שלום <strong>{user?.name}</strong>, טורניר המכשיריות פתוח כעת! הצלחתך במבחן מחזקת את הממוצע של <strong>{user?.department}</strong> בתחרות:
           </p>
 
           <div className="employee-info-box">

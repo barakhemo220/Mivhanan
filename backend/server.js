@@ -17,6 +17,7 @@ import {
   QuestionModel, 
   ExamResultModel, 
   SavedPdfModel,
+  TournamentModel,
   syncAtlasToLocalDisk
 } from './db.js';
 
@@ -355,6 +356,7 @@ app.get('/api/health', (req, res) => {
 const EMPLOYEES_FILE = path.join(__dirname, 'data/employees.json');
 const QUESTIONS_FILE = path.join(__dirname, 'data/questions.json');
 const RESULTS_FILE = path.join(__dirname, 'data/exam_results.json');
+const TOURNAMENT_FILE = path.join(__dirname, 'data/tournament.json');
 
 // In-memory last-known-good JSON cache & serialized MongoDB sync queues (SEC-01 & SEC-12)
 const jsonMemoryCache = new Map();
@@ -447,6 +449,10 @@ const writeJson = (filePath, data) => {
         enqueueCloudSync('questions', () => atomicCollectionSync(QuestionModel, data));
       } else if (filePath === RESULTS_FILE) {
         enqueueCloudSync('results', () => atomicCollectionSync(ExamResultModel, data));
+      } else if (filePath === TOURNAMENT_FILE && data && data.id) {
+        enqueueCloudSync('tournament', () =>
+          TournamentModel.findOneAndUpdate({ id: data.id }, data, { upsert: true })
+        );
       }
     }
     return true;
@@ -488,8 +494,220 @@ function formatDateHe(dateInput) {
 }
 
 // -------------------------------------------------------------
-// Helper: Check Exam Eligibility based on 4-Month Schedule Window
+// Tournament Configuration, Eligibility & Anonymous Leaderboard Engine
 // -------------------------------------------------------------
+function getTournamentConfig() {
+  const defaultConfig = {
+    id: 'tournament_current',
+    title: 'אליפות המכשור והבקרה',
+    startDate: '',
+    endDate: '',
+    resultsRevealed: false,
+    resetAt: null,
+    updatedAt: null
+  };
+  const cfg = readJson(TOURNAMENT_FILE, defaultConfig);
+  if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) {
+    return defaultConfig;
+  }
+  return { ...defaultConfig, ...cfg };
+}
+
+function parseLocalDateBounds(startDateStr, endDateStr) {
+  if (!startDateStr || !endDateStr) return null;
+  const sParts = String(startDateStr).trim().split('-');
+  const eParts = String(endDateStr).trim().split('-');
+  if (sParts.length !== 3 || eParts.length !== 3) return null;
+
+  const start = new Date(parseInt(sParts[0], 10), parseInt(sParts[1], 10) - 1, parseInt(sParts[2], 10), 0, 0, 0, 0);
+  const end = new Date(parseInt(eParts[0], 10), parseInt(eParts[1], 10) - 1, parseInt(eParts[2], 10), 23, 59, 59, 999);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+  return { start, end };
+}
+
+function getTournamentResultsMap(tournament, results) {
+  const bounds = parseLocalDateBounds(tournament.startDate, tournament.endDate);
+  const map = new Map();
+  if (!bounds) return map;
+
+  const resetTime = tournament.resetAt ? new Date(tournament.resetAt).getTime() : 0;
+
+  for (const r of results) {
+    if (!r || !r.employeeId || !r.submittedAt) continue;
+    const subTime = new Date(r.submittedAt).getTime();
+    if (isNaN(subTime)) continue;
+    if (resetTime && subTime < resetTime) continue;
+
+    if (subTime >= bounds.start.getTime() && subTime <= bounds.end.getTime()) {
+      const cleanId = String(r.employeeId).trim();
+      const existing = map.get(cleanId);
+      if (!existing || new Date(r.submittedAt) > new Date(existing.submittedAt)) {
+        map.set(cleanId, r);
+      }
+    }
+  }
+  return map;
+}
+
+function computeTournamentSummary() {
+  const tournament = getTournamentConfig();
+  const employees = readJson(EMPLOYEES_FILE, []);
+  const results = readJson(RESULTS_FILE, []);
+
+  const nonAdminEmployees = employees.filter(e => {
+    const cleanId = String(e.id || '').trim().toLowerCase();
+    return !e.isAdmin && cleanId !== 'admin' && cleanId !== '9999';
+  });
+
+  const bounds = parseLocalDateBounds(tournament.startDate, tournament.endDate);
+  const now = new Date();
+  let status = 'not_scheduled';
+  if (bounds) {
+    if (now < bounds.start) {
+      status = 'upcoming';
+    } else if (now > bounds.end) {
+      status = 'ended';
+    } else {
+      status = 'active';
+    }
+  }
+
+  const tournamentResultsMap = getTournamentResultsMap(tournament, results);
+
+  const employeeStatusList = nonAdminEmployees.map(emp => {
+    const cleanId = String(emp.id).trim();
+    const hasCompleted = tournamentResultsMap.has(cleanId);
+    return {
+      id: emp.id,
+      name: emp.name,
+      department: emp.department,
+      role: emp.role,
+      isActive: emp.isActive !== false,
+      hasCompleted
+    };
+  });
+
+  const completedCount = employeeStatusList.filter(e => e.hasCompleted).length;
+  const notCompletedCount = employeeStatusList.length - completedCount;
+
+  // Results are visible only after the tournament end date OR when admin explicitly reveals them
+  const isResultsVisible = Boolean(tournament.resultsRevealed || status === 'ended');
+
+  // 1. Highest Score in the Tournament (Anonymous: Score + Department only, no employee name)
+  let highestScore = null;
+  for (const r of tournamentResultsMap.values()) {
+    const empObj = nonAdminEmployees.find(e => String(e.id).trim() === String(r.employeeId).trim());
+    const deptName = empObj?.department || r.department || 'מכשור ובקרה';
+    const rScore = typeof r.score === 'number' ? r.score : 0;
+    const rTime = typeof r.timeSpentSeconds === 'number' ? r.timeSpentSeconds : 999999;
+
+    if (
+      !highestScore ||
+      rScore > highestScore.score ||
+      (rScore === highestScore.score && rTime < highestScore._time)
+    ) {
+      highestScore = {
+        score: rScore,
+        department: deptName,
+        _time: rTime
+      };
+    }
+  }
+  if (highestScore) {
+    delete highestScore._time;
+  }
+
+  // 2. Department Podium (Average across ALL active/switched-on employees in each department)
+  // An active employee who did not take the tournament exam counts as 0 towards their department's average
+  const deptGroups = new Map();
+  for (const emp of nonAdminEmployees) {
+    const dept = String(emp.department || '').trim();
+    if (!dept || dept === 'הנהלת מכשור ובקרה') continue;
+    const cleanId = String(emp.id).trim();
+    const isActiveEmp = emp.isActive !== false;
+    const submission = tournamentResultsMap.get(cleanId);
+
+    // Include active (switched-on) employees, or any employee who submitted in this tournament
+    if (!isActiveEmp && !submission) continue;
+
+    if (!deptGroups.has(dept)) {
+      deptGroups.set(dept, {
+        department: dept,
+        activeCount: 0,
+        completedCount: 0,
+        totalScoreSum: 0,
+        totalTimeSeconds: 0
+      });
+    }
+    const g = deptGroups.get(dept);
+    g.activeCount += 1;
+    if (submission) {
+      g.completedCount += 1;
+      g.totalScoreSum += (typeof submission.score === 'number' ? submission.score : 0);
+      g.totalTimeSeconds += (typeof submission.timeSpentSeconds === 'number' ? submission.timeSpentSeconds : 0);
+    }
+  }
+
+  const departmentStandings = Array.from(deptGroups.values())
+    .filter(g => g.activeCount > 0)
+    .map(g => {
+      const averageScore = Math.round((g.totalScoreSum / g.activeCount) * 10) / 10;
+      const participationRate = Math.round((g.completedCount / g.activeCount) * 100);
+      const avgTimeSeconds = g.completedCount > 0 ? Math.round(g.totalTimeSeconds / g.completedCount) : 999999;
+      return {
+        department: g.department,
+        averageScore,
+        activeCount: g.activeCount,
+        completedCount: g.completedCount,
+        participationRate,
+        avgTimeSeconds
+      };
+    })
+    .sort((a, b) => {
+      if (b.averageScore !== a.averageScore) return b.averageScore - a.averageScore;
+      if (b.completedCount !== a.completedCount) return b.completedCount - a.completedCount;
+      return a.avgTimeSeconds - b.avgTimeSeconds;
+    })
+    .map((item, idx) => ({
+      rank: idx + 1,
+      department: item.department,
+      averageScore: item.averageScore,
+      activeCount: item.activeCount,
+      completedCount: item.completedCount,
+      participationRate: item.participationRate
+    }));
+
+  const podium = departmentStandings.slice(0, 3);
+
+  return {
+    tournament: {
+      id: tournament.id,
+      title: tournament.title || 'אליפות המכשור והבקרה',
+      startDate: tournament.startDate || '',
+      endDate: tournament.endDate || '',
+      startDateFormatted: tournament.startDate ? formatDateHe(tournament.startDate) : '',
+      endDateFormatted: tournament.endDate ? formatDateHe(tournament.endDate) : '',
+      resultsRevealed: Boolean(tournament.resultsRevealed),
+      status,
+      updatedAt: tournament.updatedAt
+    },
+    stats: {
+      totalEmployees: employeeStatusList.length,
+      completedCount,
+      notCompletedCount
+    },
+    employeeStatusList,
+    isResultsVisible,
+    leaderboard: isResultsVisible
+      ? {
+          highestScore,
+          podium,
+          departmentStandings
+        }
+      : null
+  };
+}
+
 function checkExamEligibility(employee) {
   if (!employee) {
     return { canTakeExam: false, reason: 'NOT_FOUND', message: 'עובד לא נמצא במערכת' };
@@ -499,103 +717,91 @@ function checkExamEligibility(employee) {
     return { 
       canTakeExam: false, 
       reason: 'ADMIN_USER', 
-      message: 'מנהל מערכת אינו נדרש לבצע מבחנים תקופתיים.' 
+      message: 'מנהל מערכת אינו משתתף במבחני הטורניר.' 
     };
   }
 
-  let effectiveDateStr = employee.nextExamDate ? String(employee.nextExamDate).trim() : '';
+  const tournament = getTournamentConfig();
+  const summary = computeTournamentSummary();
+  const bounds = parseLocalDateBounds(tournament.startDate, tournament.endDate);
 
-  // CR-07: If no custom nextExamDate is set, derive the automatic 4-month cycle from the employee's latest exam result
-  if (!effectiveDateStr) {
-    const results = readJson(RESULTS_FILE, []);
-    const cleanEmpId = String(employee.id).trim();
-    let latestSubmittedAt = null;
-    for (const r of results) {
-      if (String(r.employeeId).trim() === cleanEmpId && r.submittedAt) {
-        const dt = new Date(r.submittedAt);
-        if (!isNaN(dt.getTime()) && (!latestSubmittedAt || dt > latestSubmittedAt)) {
-          latestSubmittedAt = dt;
-        }
-      }
-    }
-    if (latestSubmittedAt) {
-      const autoTarget = new Date(latestSubmittedAt);
-      autoTarget.setMonth(autoTarget.getMonth() + 4);
-      effectiveDateStr = autoTarget.toISOString().split('T')[0];
-    }
-  }
-
-  if (!effectiveDateStr) {
+  if (!bounds) {
     return {
       canTakeExam: false,
       reason: 'NO_SCHEDULED_EXAM',
-      message: 'אין עבורך מבחן מתוזמן במערכת. יש לפנות למנהל לתיאום מועד מבחן.'
+      tournamentSummary: summary,
+      message: 'טרם נקבע מועד לטורניר הקרוב במערכת. ניתן לבצע תרגול חופשי בינתיים.'
     };
   }
 
-  const parts = effectiveDateStr.split('-');
-  if (parts.length !== 3) {
+  const now = new Date();
+  const startDateFormatted = formatDateHe(tournament.startDate);
+  const endDateFormatted = formatDateHe(tournament.endDate);
+
+  const empStatus = summary.employeeStatusList.find(e => String(e.id).trim() === String(employee.id).trim());
+  const hasCompleted = Boolean(empStatus?.hasCompleted);
+
+  if (now > bounds.end) {
     return {
       canTakeExam: false,
-      reason: 'INVALID_DATE',
-      message: 'מועד המבחן המתוזמן אינו תקין. יש לפנות למנהל המערכת.'
+      reason: 'TOURNAMENT_ENDED',
+      hasCompletedTournament: hasCompleted,
+      nextExamDate: tournament.endDate,
+      targetDateFormatted: endDateFormatted,
+      windowOpenDate: tournament.startDate,
+      windowOpenDateFormatted: startDateFormatted,
+      tournamentSummary: summary,
+      message: `הטורניר הסתיים בתאריך ${endDateFormatted}. ניתן לצפות בתוצאות האליפות ובפודיום המכשיריות המנצחות!`
     };
   }
 
-  const year = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1;
-  const day = parseInt(parts[2], 10);
-  const target = new Date(year, month, day);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Difference in calendar days
-  const diffTime = target.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  // Exam window opens 30 days (1 month) before the scheduled target date
-  const windowOpenDate = new Date(target);
-  windowOpenDate.setDate(windowOpenDate.getDate() - 30);
-
-  const targetDateFormatted = target.toLocaleDateString('he-IL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-  const windowOpenDateFormatted = windowOpenDate.toLocaleDateString('he-IL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-
-  // If more than 30 days before the scheduled date: cannot take exam yet
-  if (diffDays > 30) {
-    const daysUntilOpen = diffDays - 30;
+  if (now < bounds.start) {
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const diffTime = bounds.start.getTime() - todayMidnight.getTime();
+    const daysUntilOpen = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
     return {
       canTakeExam: false,
       reason: 'TOO_EARLY',
-      nextExamDate: effectiveDateStr,
-      targetDateFormatted,
-      windowOpenDate: windowOpenDate.toISOString().split('T')[0],
-      windowOpenDateFormatted,
-      diffDays,
+      nextExamDate: tournament.endDate,
+      targetDateFormatted: endDateFormatted,
+      windowOpenDate: tournament.startDate,
+      windowOpenDateFormatted: startDateFormatted,
       daysUntilOpen,
-      message: `המבחן שלך מתוזמן לתאריך ${targetDateFormatted}. חלון הבחינה ייפתח עד חודש לפני המועד (החל מ-${windowOpenDateFormatted}). נותרו עוד ${daysUntilOpen} ימים לפתיחת המבחן.`
+      tournamentSummary: summary,
+      message: `הטורניר ייפתח בתאריך ${startDateFormatted} ויימשך עד ${endDateFormatted}. נותרו עוד ${daysUntilOpen} ימים לפתיחת הטורניר.`
     };
   }
 
-  // Eligible to take the exam (diffDays <= 30, whether in 30-day window or overdue)
+  if (hasCompleted) {
+    return {
+      canTakeExam: false,
+      reason: 'ALREADY_COMPLETED',
+      hasCompletedTournament: true,
+      nextExamDate: tournament.endDate,
+      targetDateFormatted: endDateFormatted,
+      windowOpenDate: tournament.startDate,
+      windowOpenDateFormatted: startDateFormatted,
+      tournamentSummary: summary,
+      message: `כבר ביצעת את מבחן הטורניר הנוכחי! תוצאות האליפות ופודיום המכשיריות יוצגו בסיום הטורניר (${endDateFormatted}).`
+    };
+  }
+
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const diffDays = Math.max(0, Math.ceil((bounds.end.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24)));
+
   return {
     canTakeExam: true,
     reason: 'ELIGIBLE',
-    nextExamDate: effectiveDateStr,
-    targetDateFormatted,
+    nextExamDate: tournament.endDate,
+    targetDateFormatted: endDateFormatted,
+    windowOpenDate: tournament.startDate,
+    windowOpenDateFormatted: startDateFormatted,
     diffDays,
-    isOverdue: diffDays < 0,
-    message: diffDays < 0
-      ? `המבחן שלך היה מתוזמן לתאריך ${targetDateFormatted} (באיחור של ${Math.abs(diffDays)} ימים). הנך רשאי לבצע את המבחן כעת.`
-      : `המבחן שלך מתוזמן לתאריך ${targetDateFormatted}. חלון הבחינה פתוח כעת.`
+    isOverdue: false,
+    tournamentSummary: summary,
+    message: `הטורניר פעיל כעת (${startDateFormatted} – ${endDateFormatted}). בהצלחה!`
   };
 }
 
@@ -1110,7 +1316,7 @@ app.post('/api/exam/submit', authenticateToken, (req, res) => {
       year: 'numeric'
     });
     employees[empIndex].nextExamDate = null;
-    employees[empIndex].scheduleNotes = `מבחן בוצע ב-${todayFormatted} (ציון: ${score}%)`;
+    employees[empIndex].scheduleNotes = `ביצע מבחן טורניר ב-${todayFormatted}`;
     employees[empIndex].scheduleUpdatedAt = new Date().toISOString();
     writeJson(EMPLOYEES_FILE, employees);
   }
@@ -1560,13 +1766,70 @@ app.get('/api/results/:id/report', authenticateToken, (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 4. Admin API - Exam Results & Analytics (Strict Admin Only)
+// 4. Tournament & Admin API
 // -------------------------------------------------------------
+
+// Get Tournament Status, Participation & Anonymous Leaderboard (Available to authenticated users)
+app.get('/api/tournament/status', authenticateToken, (req, res) => {
+  const summary = computeTournamentSummary();
+  res.json({
+    success: true,
+    ...summary
+  });
+});
+
+// Update Tournament Schedule, Reveal Results, or Start New Tournament (Admin Only)
+app.put('/api/admin/tournament', requireAdmin, (req, res) => {
+  const { startDate, endDate, title, resultsRevealed, resetTournament } = req.body;
+  const current = getTournamentConfig();
+
+  if (startDate !== undefined && endDate !== undefined && startDate && endDate) {
+    const bounds = parseLocalDateBounds(startDate, endDate);
+    if (!bounds) {
+      return res.status(400).json({ success: false, message: 'תאריכי הטורניר אינם תקינים' });
+    }
+    if (bounds.end < bounds.start) {
+      return res.status(400).json({ success: false, message: 'תאריך סיום הטורניר חייב להיות אחרי או שווה לתאריך ההתחלה' });
+    }
+  }
+
+  const updated = {
+    ...current,
+    id: 'tournament_current',
+    title: title !== undefined ? String(title).trim() : current.title,
+    startDate: startDate !== undefined ? String(startDate).trim() : current.startDate,
+    endDate: endDate !== undefined ? String(endDate).trim() : current.endDate,
+    resultsRevealed: resultsRevealed !== undefined ? Boolean(resultsRevealed) : current.resultsRevealed,
+    resetAt: resetTournament ? new Date().toISOString() : current.resetAt,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (resetTournament) {
+    updated.resultsRevealed = false;
+  }
+
+  writeJson(TOURNAMENT_FILE, updated);
+  const summary = computeTournamentSummary();
+
+  res.json({
+    success: true,
+    message: resetTournament
+      ? 'טורניר חדש אופס והוגדר בהצלחה!'
+      : 'הגדרות ומועדי הטורניר עודכנו בהצלחה!',
+    ...summary
+  });
+});
+
 app.get('/api/admin/results', requireAdmin, (req, res) => {
   const results = readJson(RESULTS_FILE, []);
-  // CR-08: Strip heavy review & pdfBase64 arrays from list response (fetched on-demand via /api/results/:id)
-  const summaryResults = results.map(({ review, pdfBase64, ...summary }) => summary);
-  res.json({ success: true, results: summaryResults });
+  // Privacy enforcement: Admin does not see individual employee scores or answers
+  const anonymousCompletionResults = results.map(r => ({
+    id: r.id,
+    employeeId: r.employeeId,
+    department: r.department,
+    submittedAt: r.submittedAt
+  }));
+  res.json({ success: true, results: anonymousCompletionResults });
 });
 
 // Export Results as Excel-friendly CSV with UTF-8 BOM & Formula Injection Protection

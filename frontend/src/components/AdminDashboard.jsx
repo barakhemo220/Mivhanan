@@ -33,11 +33,16 @@ import {
   Copy,
   KeyRound,
   ShieldCheck,
-  Power
+  Power,
+  Trophy,
+  Lock,
+  Unlock,
+  Flag
 } from 'lucide-react';
 import ImageModal from './ImageModal';
 import SavedExamModal from './SavedExamModal';
 import EditEmployeeModal from './EditEmployeeModal';
+import TournamentPodium from './TournamentPodium';
 import { getAuthHeaders, downloadAuthenticatedBlob, openAuthenticatedBlobInNewTab } from '../utils/authClient';
 
 const DEFAULT_DEPARTMENTS = [
@@ -54,10 +59,14 @@ const DEFAULT_DEPARTMENTS = [
 ];
 
 export default function AdminDashboard({ user, onLogout }) {
-  const [activeTab, setActiveTab] = useState('results'); // results, questions, employees
+  const [activeTab, setActiveTab] = useState('schedule'); // schedule (tournament), questions, employees
   const [results, setResults] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [tournamentData, setTournamentData] = useState(null);
+  const [tournStartDate, setTournStartDate] = useState('');
+  const [tournEndDate, setTournEndDate] = useState('');
+  const [isSavingTournament, setIsSavingTournament] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -181,23 +190,164 @@ export default function AdminDashboard({ user, onLogout }) {
     fetchDashboardData();
   }, []);
 
+  const refreshTournamentStatus = async () => {
+    try {
+      const resTourn = await authFetch('/api/tournament/status').then(r => r.json());
+      if (resTourn.success && resTourn.tournament) {
+        setTournamentData(resTourn.tournament);
+        setTournStartDate(resTourn.tournament.startDate || '');
+        setTournEndDate(resTourn.tournament.endDate || '');
+      }
+    } catch (e) {
+      console.error('Failed to refresh tournament status', e);
+    }
+  };
+
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [resResults, resQuestions, resEmployees] = await Promise.all([
+      const [resResults, resQuestions, resEmployees, resTournament] = await Promise.all([
         authFetch('/api/admin/results').then(r => r.json()),
         authFetch('/api/admin/questions').then(r => r.json()),
-        authFetch('/api/admin/employees').then(r => r.json())
+        authFetch('/api/admin/employees').then(r => r.json()),
+        authFetch('/api/tournament/status').then(r => r.json())
       ]);
 
       if (resResults.success) setResults(resResults.results);
       if (resQuestions.success) setQuestions(resQuestions.questions);
       if (resEmployees.success) setEmployees(resEmployees.employees);
+      if (resTournament.success && resTournament.tournament) {
+        setTournamentData(resTournament.tournament);
+        setTournStartDate(resTournament.tournament.startDate || '');
+        setTournEndDate(resTournament.tournament.endDate || '');
+      }
     } catch (e) {
       console.error('Failed to load admin data', e);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyTournamentPreset = (daysDuration) => {
+    const start = new Date();
+    const end = new Date();
+    if (daysDuration > 1) {
+      end.setDate(start.getDate() + (daysDuration - 1));
+    }
+    const formatYmd = (d) => {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+    setTournStartDate(formatYmd(start));
+    setTournEndDate(formatYmd(end));
+  };
+
+  const handleSaveTournamentDates = async (e) => {
+    if (e) e.preventDefault();
+    if (!tournStartDate || !tournEndDate) {
+      showToast('נא לבחור תאריך התחלה ותאריך סיום לטורניר', 'warning');
+      return;
+    }
+    if (tournEndDate < tournStartDate) {
+      showToast('תאריך הסיום אינו יכול להיות מוקדם מתאריך ההתחלה', 'error');
+      return;
+    }
+
+    setIsSavingTournament(true);
+    try {
+      const res = await authFetch('/api/admin/tournament', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: tournStartDate,
+          endDate: tournEndDate
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.tournament) {
+        setTournamentData(data.tournament);
+        setTournStartDate(data.tournament.startDate || '');
+        setTournEndDate(data.tournament.endDate || '');
+        showToast(data.message || 'מועדי הטורניר נשמרו בהצלחה!', 'success');
+      } else {
+        showToast(data.message || 'שגיאה בשמירת מועדי הטורניר', 'error');
+      }
+    } catch (err) {
+      showToast('שגיאת תקשורת בשמירת מועדי הטורניר', 'error');
+    } finally {
+      setIsSavingTournament(false);
+    }
+  };
+
+  const handleToggleRevealResults = async () => {
+    const nextReveal = !tournamentData?.resultsRevealed;
+    setIsSavingTournament(true);
+    try {
+      const res = await authFetch('/api/admin/tournament', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resultsRevealed: nextReveal
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.tournament) {
+        setTournamentData(data.tournament);
+        showToast(
+          nextReveal
+            ? 'תוצאות הטורניר והפודיום נחשפו כעת לעיני כל!'
+            : 'תוצאות הטורניר הוסתרו מחדש עד לסיום מועד התחרות',
+          'success'
+        );
+      } else {
+        showToast(data.message || 'שגיאה בעדכון חשיפת התוצאות', 'error');
+      }
+    } catch (err) {
+      showToast('שגיאת תקשורת בעדכון חשיפת התוצאות', 'error');
+    } finally {
+      setIsSavingTournament(false);
+    }
+  };
+
+  const handleResetTournament = () => {
+    setConfirmDialog({
+      title: 'פתיחת טורניר חדש ואיפוס נתוני התחרות הקודמת',
+      message: 'האם אתה בטוח שברצונך לאפס את נתוני הטורניר הנוכחי לטובת פתיחת טורניר חדש?',
+      details: 'כל סטטוסי הביצוע של העובדים יתאפסו ל"לא ביצע" כדי שיוכלו להיבחן בטורניר החדש.',
+      warningNote: 'פעולה זו מאפסת את תוצאות הטורניר הקודם ומכינה את הזירה לתחרות חדשה.',
+      confirmText: 'אפס ופתח טורניר חדש',
+      confirmVariant: 'warning',
+      onConfirm: async () => {
+        setIsSavingTournament(true);
+        try {
+          const res = await authFetch('/api/admin/tournament', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              startDate: tournStartDate || null,
+              endDate: tournEndDate || null,
+              resultsRevealed: false,
+              resetResults: true
+            })
+          });
+          const data = await res.json();
+          if (data.success && data.tournament) {
+            setTournamentData(data.tournament);
+            setResults([]);
+            showToast('הטורניר אופס בהצלחה! הזירה מוכנה לתחרות חדשה', 'success');
+          } else {
+            showToast(data.message || 'שגיאה באיפוס הטורניר', 'error');
+          }
+        } catch (err) {
+          showToast('שגיאת תקשורת באיפוס הטורניר', 'error');
+        } finally {
+          setIsSavingTournament(false);
+          setConfirmDialog(null);
+        }
+      }
+    });
   };
 
   const handleAuthenticatedDownload = async (url, fallbackFilename) => {
@@ -573,6 +723,7 @@ export default function AdminDashboard({ user, onLogout }) {
         setEmployees(prev =>
           prev.map(item => (item.id === emp.id ? { ...item, isActive: nextActive } : item))
         );
+        refreshTournamentStatus();
         showToast(
           nextActive
             ? `המשתמש "${emp.name}" הופעל (דלוק) וכעת מורשה להיכנס למערכת`
@@ -933,113 +1084,11 @@ export default function AdminDashboard({ user, onLogout }) {
       <div className="admin-header glass-card">
         <div className="admin-title-wrap">
           <div className="admin-icon-box">
-            <FileSpreadsheet size={24} className="text-cyan" />
+            <Trophy size={24} className="text-amber" />
           </div>
           <div>
             <h1 className="admin-title">לוח ניהול מערכת ובקרה (Admin)</h1>
-            <p className="admin-subtitle">מעקב אחר תוצאות מבחנים תקופתיים, ניהול בנק שאלות ורשימת עובדים</p>
-          </div>
-        </div>
-
-        <div className="admin-header-actions">
-          <button
-            type="button"
-            onClick={() => handleAuthenticatedDownload('/api/admin/backup-zip', 'mivhanan_full_backup.zip')}
-            className="btn btn-secondary"
-            title="הורדת קובץ גיבוי ZIP מלא של כל המערכת (כולל JSON וכל קובצי ה-PDF)"
-          >
-            <Archive size={16} className="text-amber" />
-            <span>גיבוי מלא (ZIP)</span>
-          </button>
-
-          <label
-            className="btn btn-secondary"
-            style={{ cursor: isRestoring ? 'wait' : 'pointer' }}
-            title="העלאת קובץ גיבוי ZIP ושחזור כל הנתונים וקובצי ה-PDF"
-          >
-            <UploadCloud size={16} className="text-cyan" />
-            <span>{isRestoring ? 'משחזר נתונים...' : 'שחזור מ-ZIP'}</span>
-            <input
-              type="file"
-              accept=".zip"
-              style={{ display: 'none' }}
-              disabled={isRestoring}
-              onChange={handleRestoreZip}
-            />
-          </label>
-
-          <button 
-            type="button" 
-            id="btn-export-excel"
-            className="btn btn-primary"
-            onClick={handleExportCsv}
-            title="הורדת כל הציונים לקובץ Excel מסודר עם תמיכה מלאה בעברית"
-          >
-            <Download size={16} />
-            <span>ייצוא לאקסל (Excel CSV)</span>
-          </button>
-
-          <button 
-            type="button" 
-            className="btn btn-secondary"
-            onClick={fetchDashboardData}
-            title="רענן נתונים"
-          >
-            <RefreshCw size={16} />
-            <span>רענן</span>
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Cards Row */}
-      <div className="kpi-grid">
-        <div className="kpi-card glass-card">
-          <div className="kpi-icon-box cyan">
-            <TrendingUp size={22} />
-          </div>
-          <div className="kpi-content">
-            <div className="kpi-label">סה"כ מבחנים שהוגשו</div>
-            <div className="kpi-val" id="kpi-total-tests">{totalSubmissions}</div>
-          </div>
-        </div>
-
-        <div className="kpi-card glass-card">
-          <div className="kpi-icon-box emerald">
-            <Award size={22} />
-          </div>
-          <div className="kpi-content">
-            <div className="kpi-label">אחוז מעבר כללי</div>
-            <div className="kpi-val" id="kpi-pass-rate">{passRate}%</div>
-          </div>
-        </div>
-
-        <div className="kpi-card glass-card">
-          <div className="kpi-icon-box amber">
-            <Award size={22} />
-          </div>
-          <div className="kpi-content">
-            <div className="kpi-label">ציון ממוצע</div>
-            <div className="kpi-val" id="kpi-avg-score">{avgScore}</div>
-          </div>
-        </div>
-
-        <div className="kpi-card glass-card">
-          <div className="kpi-icon-box indigo">
-            <HelpCircle size={22} />
-          </div>
-          <div className="kpi-content">
-            <div className="kpi-label">שאלות בבנק המבחנים</div>
-            <div className="kpi-val" id="kpi-questions-count">{questions.length}</div>
-          </div>
-        </div>
-
-        <div className="kpi-card glass-card">
-          <div className="kpi-icon-box blue">
-            <Users size={22} />
-          </div>
-          <div className="kpi-content">
-            <div className="kpi-label">עובדים רשומים</div>
-            <div className="kpi-val" id="kpi-employees-count">{employees.length}</div>
+            <p className="admin-subtitle">זירת האליפות במכשור ובקרה • תחרות ידע אינטראקטיבית בין מכשיריות</p>
           </div>
         </div>
       </div>
@@ -1047,23 +1096,12 @@ export default function AdminDashboard({ user, onLogout }) {
       {/* Navigation Tabs */}
       <div className="admin-tabs-bar">
         <button 
-          className={`admin-tab-btn ${activeTab === 'results' ? 'active' : ''}`}
-          onClick={() => setActiveTab('results')}
-        >
-          <FileSpreadsheet size={16} />
-          <span>יומן ציוני עובדים ({results.length})</span>
-        </button>
-
-        <button 
           id="tab-btn-schedule"
           className={`admin-tab-btn ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
         >
-          <CalendarClock size={16} />
-          <span>מעקב ותזמון מבחנים (4 חודשים)</span>
-          {scheduleKpi.overdueCount > 0 && (
-            <span className="tab-pill-badge badge-overdue">{scheduleKpi.overdueCount} באיחור</span>
-          )}
+          <Trophy size={16} />
+          <span>מעקב ותזמון טורניר</span>
         </button>
 
         <button 
@@ -1083,328 +1121,223 @@ export default function AdminDashboard({ user, onLogout }) {
         </button>
       </div>
 
-      {/* Tab 1: Exam Results Table */}
-      {activeTab === 'results' && (
-        <div className="admin-tab-content glass-card fade-in">
-          <div className="table-filter-bar">
-            <div className="search-input-wrap">
-              <Search size={16} className="search-icon" />
-              <input
-                type="text"
-                className="search-input"
-                placeholder="חיפוש לפי שם עובד, מספר אישי או מחלקה..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="status-filter-group">
-              <Filter size={16} className="text-secondary" />
-              <button 
-                className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('all')}
-              >
-                הכל
-              </button>
-              <button 
-                className={`filter-pill ${statusFilter === 'passed' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('passed')}
-              >
-                עברו בלבד
-              </button>
-              <button 
-                className={`filter-pill ${statusFilter === 'failed' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('failed')}
-              >
-                נכשלו
-              </button>
-            </div>
-          </div>
-
-          <div className="table-responsive">
-            <table className="admin-data-table" id="table-exam-results">
-              <thead>
-                <tr>
-                  <th>תאריך ושעה</th>
-                  <th>שם העובד</th>
-                  <th>מספר אישי</th>
-                  <th>מחלקה</th>
-                  <th>ציון</th>
-                  <th>תשובות נכונות</th>
-                  <th>סטטוס</th>
-                  <th>משך בחינה</th>
-                  <th>פעולות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredResults.length === 0 ? (
-                  <tr>
-                    <td colSpan="9" className="empty-table-cell">
-                      לא נמצאו רשומות תואמות
-                    </td>
-                  </tr>
-                ) : (
-                  filteredResults.map(r => {
-                    const passed = r.status === 'passed' || r.score >= 70;
-                    const dateFormatted = new Date(r.submittedAt).toLocaleString('he-IL', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    });
-                    const durationMins = r.timeSpentSeconds ? `${Math.floor(r.timeSpentSeconds / 60)} דק'` : '—';
-
-                    return (
-                      <tr key={r.id} className="result-data-row">
-                        <td className="text-muted">{dateFormatted}</td>
-                        <td 
-                          className="font-bold cell-clickable" 
-                          onClick={() => setSelectedSavedExam(r)}
-                          title="לחץ לצפייה במבחן השמור"
-                        >
-                          <span className="employee-name-link">{r.employeeName}</span>
-                        </td>
-                        <td className="font-mono">{r.employeeId}</td>
-                        <td>{r.department}</td>
-                        <td>
-                          <span 
-                            className={`table-score-pill ${passed ? 'score-high' : 'score-low'} score-clickable`}
-                            onClick={() => setSelectedSavedExam(r)}
-                            title="לחץ לצפייה בתחקיר המבחן השמור"
-                          >
-                            {r.score}%
-                          </span>
-                        </td>
-                        <td>{r.correctCount} מתוך {r.totalQuestions}</td>
-                        <td>
-                          {passed ? (
-                            <span className="table-status-tag tag-passed">
-                              <CheckCircle2 size={13} />
-                              <span>עבר</span>
-                            </span>
-                          ) : (
-                            <span className="table-status-tag tag-failed">
-                              <XCircle size={13} />
-                              <span>נכשל</span>
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-muted">{durationMins}</td>
-                        <td className="table-actions-cell">
-                          <div className="table-actions-group">
-                            <button
-                              type="button"
-                              className="btn-table-view-exam"
-                              onClick={() => setSelectedSavedExam(r)}
-                              title="כניסה מהירה למבחן השמור ותחקיר שאלות"
-                            >
-                              <Eye size={13} />
-                              <span>צפה במבחן</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleOpenAuthenticatedPdf(r.id)}
-                              className="btn-table-pdf"
-                              title="הורדת / פתיחת קובץ ה-PDF של המבחן"
-                            >
-                              <FileDown size={13} />
-                              <span>PDF</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              className="btn-table-delete"
-                              onClick={() => handleDeleteResult(r.id, r.employeeName, r.submittedAt, r.score)}
-                              title="מחק רשומת מבחן זו מהיומן"
-                            >
-                              <Trash2 size={13} />
-                              <span>מחק</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 2: 4-Month Periodic Exam Tracking & Scheduling */}
+      {/* Tab 1: Tournament Tracking & Scheduling */}
       {activeTab === 'schedule' && (() => {
-        const allDepartments = Array.from(new Set([...DEFAULT_DEPARTMENTS, ...employees.map(e => e.department).filter(Boolean)]));
+        const statusMap = new Map(
+          (tournamentData?.employeeStatuses || []).map(item => [String(item.id).trim(), item])
+        );
+
+        const nonAdminEmployees = employees
+          .filter(emp => !emp.isAdmin && String(emp.id).trim().toLowerCase() !== 'admin' && String(emp.id).trim() !== '9999')
+          .map(emp => {
+            const cleanId = String(emp.id).trim();
+            const tournEmp = statusMap.get(cleanId);
+            const hasCompleted = tournEmp
+              ? Boolean(tournEmp.hasCompleted)
+              : latestResultByEmp.has(cleanId);
+            const isActiveUser = emp.isActive !== false;
+            return {
+              ...emp,
+              hasCompleted,
+              isActiveUser
+            };
+          })
+          .sort((a, b) => {
+            // Sort active users first, then by completion status
+            if (a.isActiveUser !== b.isActiveUser) return a.isActiveUser ? -1 : 1;
+            if (a.hasCompleted !== b.hasCompleted) return a.hasCompleted ? -1 : 1;
+            return 0;
+          });
+
+        const activeCompetitors = nonAdminEmployees.filter(e => e.isActiveUser);
+        const notCompletedCount = tournamentData?.notCompletedCount ?? activeCompetitors.filter(e => !e.hasCompleted).length;
+        const completedCount = tournamentData?.completedCount ?? activeCompetitors.filter(e => e.hasCompleted).length;
+
+        const tournStatus = tournamentData?.status || 'unscheduled';
+        const statusBadgeMap = {
+          active: { label: 'טורניר פעיל כעת 🔥', className: 'tourn-state-active' },
+          upcoming: { label: 'טורניר מתוזמן לעתיד 📅', className: 'tourn-state-upcoming' },
+          ended: { label: 'הטורניר הסתיים 🏆', className: 'tourn-state-ended' },
+          unscheduled: { label: 'טרם נקבע מועד טורניר', className: 'tourn-state-unscheduled' }
+        };
+        const currentStatusInfo = statusBadgeMap[tournStatus] || statusBadgeMap.unscheduled;
 
         return (
           <div className="admin-tab-content glass-card fade-in" id="admin-schedule-content">
-            {/* Top Toolbar */}
-            <div className="tab-actions-header">
-              <div>
-                <h3>מעקב תאימות ותזמון מבחנים תקופתיים (מחזור 4 חודשים)</h3>
-                <p className="tab-subtitle">
-                  כל עובד נדרש לבצע מבחן תקופתי כל 4 חודשים. המערכת מחשבת מועדי יעד ומציגה התראות על פיגור בזמן אמת.
-                </p>
+            {/* Tournament Management & Date Scheduling Card */}
+            <div className="tournament-scheduler-card">
+              <div className="tournament-scheduler-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                    <h3 style={{ margin: 0 }}>ניהול ותזמון טורניר המכשיריות</h3>
+                    <span className={`tournament-live-badge ${currentStatusInfo.className}`}>
+                      {currentStatusInfo.label}
+                    </span>
+                  </div>
+                  <p className="tab-subtitle" style={{ marginTop: '0.35rem' }}>
+                    קביעת מועד מבחן אחיד לכלל העובדים. הציונים האישיים חסויים ובסיום הטורניר מוצגים שיא הציון ופודיום 3 המכשיריות המובילות.
+                  </p>
+                </div>
+
+                <div className="tournament-scheduler-top-actions">
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${tournamentData?.resultsRevealed ? 'btn-secondary' : 'btn-primary'}`}
+                    onClick={handleToggleRevealResults}
+                    disabled={isSavingTournament}
+                    title="חשיפה או הסתרה של חלון תוצאות התחרות והפודיום"
+                  >
+                    {tournamentData?.resultsRevealed ? <Lock size={15} /> : <Unlock size={15} />}
+                    <span>{tournamentData?.resultsRevealed ? 'הסתר חלון תוצאות' : 'חשוף תוצאות טורניר כעת'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleResetTournament}
+                    disabled={isSavingTournament}
+                    title="איפוס סטטוסי הביצוע ופתיחת סבב טורניר חדש"
+                  >
+                    <Flag size={15} className="text-amber" />
+                    <span>איפוס לטורניר חדש</span>
+                  </button>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  id="btn-batch-auto-schedule"
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleBatchAutoSchedule}
-                  disabled={isAutoScheduling}
-                  title="חישוב וקביעת מועד יעד של 4 חודשים לכל העובדים שטרם נקבע להם מועד או שנמצאים באיחור"
-                >
-                  <Zap size={15} className="text-amber" />
-                  <span>{isAutoScheduling ? 'מתזמן עובדים...' : 'תזמון אוטומטי למאחרים'}</span>
-                </button>
+              <form onSubmit={handleSaveTournamentDates} className="tournament-dates-form">
+                <div className="tournament-date-field">
+                  <label className="form-label">
+                    <Calendar size={14} className="text-cyan" />
+                    <span>תאריך התחלת הטורניר</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="input-tournament-start"
+                    className="form-input"
+                    value={tournStartDate}
+                    onChange={(e) => setTournStartDate(e.target.value)}
+                    required
+                  />
+                </div>
 
-                <button
-                  type="button"
-                  id="btn-export-schedule-csv"
-                  className="btn btn-primary btn-sm"
-                  onClick={handleExportScheduleCsv}
-                  title="הורדת דוח מעקב 4 חודשים מלא לאקסל (CSV עם עברית תקינה)"
-                >
-                  <Download size={15} />
-                  <span>ייצוא דוח מעקב (Excel)</span>
-                </button>
-              </div>
+                <div className="tournament-date-field">
+                  <label className="form-label">
+                    <CalendarCheck size={14} className="text-emerald" />
+                    <span>תאריך סיום הטורניר</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="input-tournament-end"
+                    className="form-input"
+                    value={tournEndDate}
+                    onChange={(e) => setTournEndDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="tournament-presets-col">
+                  <span className="preset-mini-label">קיצורי דרך למועד:</span>
+                  <div className="tournament-preset-btns">
+                    <button
+                      type="button"
+                      className="preset-pill-btn"
+                      onClick={() => applyTournamentPreset(1)}
+                    >
+                      היום בלבד
+                    </button>
+                    <button
+                      type="button"
+                      className="preset-pill-btn"
+                      onClick={() => applyTournamentPreset(3)}
+                    >
+                      3 ימים
+                    </button>
+                    <button
+                      type="button"
+                      className="preset-pill-btn"
+                      onClick={() => applyTournamentPreset(7)}
+                    >
+                      שבוע מלא
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tournament-save-col">
+                  <button
+                    type="submit"
+                    id="btn-save-tournament-dates"
+                    className="btn btn-primary"
+                    disabled={isSavingTournament}
+                  >
+                    <CalendarClock size={16} />
+                    <span>{isSavingTournament ? 'שומר...' : 'שמור מועדי טורניר'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
 
-            {/* KPI Cards Row for 4-Month Tracking */}
-            <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
-              <div className="kpi-card glass-card">
-                <div className="kpi-icon-box emerald">
-                  <CheckCircle2 size={22} />
-                </div>
-                <div className="kpi-content" style={{ flex: 1 }}>
-                  <div className="kpi-label">עמידה ביעד 4 חודשים</div>
-                  <div className="kpi-val" style={{ color: '#059669' }}>
-                    {scheduleKpi.complianceRate}%
-                  </div>
-                  <div className="compliance-progress-box">
-                    <div className="compliance-progress-fill" style={{ width: `${scheduleKpi.complianceRate}%` }} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="kpi-card glass-card">
-                <div className="kpi-icon-box emerald">
-                  <CalendarCheck size={22} />
-                </div>
-                <div className="kpi-content">
-                  <div className="kpi-label">הסמכה בתוקף</div>
-                  <div className="kpi-val text-emerald">{scheduleKpi.validCount}</div>
-                </div>
-              </div>
-
+            {/* Tournament KPI Cards */}
+            <div className="kpi-grid" style={{ marginBottom: '1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
               <div className="kpi-card glass-card">
                 <div className="kpi-icon-box amber">
                   <Clock size={22} />
                 </div>
                 <div className="kpi-content">
-                  <div className="kpi-label">נדרשים לתאם בקרוב (30 יום)</div>
-                  <div className="kpi-val text-amber">{scheduleKpi.dueSoonCount}</div>
+                  <div className="kpi-label">טרם ביצעו את מבחן הטורניר</div>
+                  <div className="kpi-val text-amber" id="kpi-tourn-not-completed">
+                    {notCompletedCount}
+                  </div>
                 </div>
               </div>
 
               <div className="kpi-card glass-card">
-                <div className="kpi-icon-box rose">
-                  <AlertTriangle size={22} />
+                <div className="kpi-icon-box emerald">
+                  <CheckCircle2 size={22} />
                 </div>
                 <div className="kpi-content">
-                  <div className="kpi-label">באיחור / פג תוקף</div>
-                  <div className="kpi-val text-rose">{scheduleKpi.overdueCount}</div>
+                  <div className="kpi-label">ביצעו את מבחן הטורניר</div>
+                  <div className="kpi-val text-emerald" id="kpi-tourn-completed">
+                    {completedCount}
+                  </div>
                 </div>
               </div>
 
               <div className="kpi-card glass-card">
-                <div className="kpi-icon-box slate">
-                  <HelpCircle size={22} />
+                <div className="kpi-icon-box indigo">
+                  <Trophy size={22} />
                 </div>
                 <div className="kpi-content">
-                  <div className="kpi-label">טרם נבחנו במערכת</div>
-                  <div className="kpi-val text-muted">{scheduleKpi.neverCount}</div>
+                  <div className="kpi-label">חלון זמן הטורניר</div>
+                  <div className="kpi-val" style={{ fontSize: '1.05rem', fontWeight: 800 }}>
+                    {tournamentData?.startDate && tournamentData?.endDate
+                      ? `${new Date(tournamentData.startDate).toLocaleDateString('he-IL')} – ${new Date(tournamentData.endDate).toLocaleDateString('he-IL')}`
+                      : 'טרם הוגדר תאריך'}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Filter and Search Bar */}
-            <div className="table-filter-bar">
-              <div className="search-input-wrap">
-                <Search size={16} className="search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="חיפוש לפי שם עובד, מספר אישי, תפקיד או הערות מועד..."
-                  value={scheduleSearchTerm}
-                  onChange={(e) => setScheduleSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <div className="emp-filters-group">
-                <select
-                  className="emp-dept-select"
-                  value={scheduleDeptFilter}
-                  onChange={(e) => setScheduleDeptFilter(e.target.value)}
-                  title="סינון לפי מחלקה / מכשיריה"
-                >
-                  <option value="all">כל המכשיריות ({employees.length})</option>
-                  {allDepartments.map(dept => (
-                    <option key={dept} value={dept}>
-                      {dept} ({employees.filter(e => e.department === dept).length})
-                    </option>
-                  ))}
-                </select>
-
-                <div className="filter-chips">
-                  <button 
-                    type="button" 
-                    className={`chip-btn ${scheduleStatusFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setScheduleStatusFilter('all')}
-                  >
-                    הכל ({employeeScheduleData.length})
-                  </button>
-                  <button 
-                    type="button" 
-                    className={`chip-btn ${scheduleStatusFilter === 'overdue' ? 'active' : ''}`}
-                    onClick={() => setScheduleStatusFilter('overdue')}
-                    style={scheduleKpi.overdueCount > 0 ? { color: '#be123c', fontWeight: 800 } : {}}
-                  >
-                    באיחור ({scheduleKpi.overdueCount})
-                  </button>
-                  <button 
-                    type="button" 
-                    className={`chip-btn ${scheduleStatusFilter === 'due_soon' ? 'active' : ''}`}
-                    onClick={() => setScheduleStatusFilter('due_soon')}
-                    style={scheduleKpi.dueSoonCount > 0 ? { color: '#b45309', fontWeight: 800 } : {}}
-                  >
-                    בקרוב ({scheduleKpi.dueSoonCount})
-                  </button>
-                  <button 
-                    type="button" 
-                    className={`chip-btn ${scheduleStatusFilter === 'valid' ? 'active' : ''}`}
-                    onClick={() => setScheduleStatusFilter('valid')}
-                  >
-                    בתוקף ({scheduleKpi.validCount})
-                  </button>
-                  <button 
-                    type="button" 
-                    className={`chip-btn ${scheduleStatusFilter === 'never' ? 'active' : ''}`}
-                    onClick={() => setScheduleStatusFilter('never')}
-                  >
-                    טרם נבחנו ({scheduleKpi.neverCount})
-                  </button>
+            {/* Festive Competition Results Arena (Shown when tournament ends or revealed) */}
+            {tournamentData?.isResultsVisible ? (
+              <TournamentPodium tournament={tournamentData} />
+            ) : (
+              <div className="tournament-sealed-banner">
+                <div className="sealed-icon-circle">
+                  <Trophy size={28} />
+                </div>
+                <div className="sealed-text-content">
+                  <h4>תוצאות הטורניר והפודיום נעולים עד לסיום התחרות</h4>
+                  <p>
+                    לשמירה על הוגנות ואנונימיות מלאה, הציונים אינם מוצגים במהלך התחרות. בסיום מועד הטורניר
+                    {tournamentData?.endDate ? ` (${new Date(tournamentData.endDate).toLocaleDateString('he-IL')})` : ''}
+                    {' '}ייחשפו כאן אוטומטית <strong>הציון הגבוה ביותר בטורניר</strong> ו<strong>פודיום 3 המכשיריות המנצחות (מקום ראשון, שני ושלישי)</strong>.
+                  </p>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Summary Table per Employee */}
-            <div className="table-responsive">
+            {/* Employee Tournament Participation Table (No Filters) */}
+            <div className="table-responsive" style={{ marginTop: '1.25rem' }}>
               <table className="admin-data-table" id="table-exam-schedules">
                 <thead>
                   <tr>
@@ -1412,99 +1345,60 @@ export default function AdminDashboard({ user, onLogout }) {
                     <th>שם העובד</th>
                     <th>מחלקה / מכשיריה</th>
                     <th>תפקיד</th>
-                    <th>מבחן אחרון שבוצע</th>
-                    <th>מועד יעד למבחן הבא (4 חודשים)</th>
-                    <th>סטטוס תאימות ביצוע</th>
-                    <th>הערות מועד</th>
-                    <th>פעולות</th>
+                    <th>סטטוס ביצוע מבחן לטורניר</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredScheduleList.length === 0 ? (
+                  {nonAdminEmployees.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="empty-table-cell">
-                        לא נמצאו עובדים התואמים לחיפוש ולסינון הנוכחי
+                      <td colSpan="5" className="empty-table-cell">
+                        לא נמצאו עובדים רשומים במערכת
                       </td>
                     </tr>
                   ) : (
-                    filteredScheduleList.map(emp => {
-                      const lastExamStr = emp.lastExamDate 
-                        ? emp.lastExamDate.toLocaleDateString('he-IL', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                        : null;
-
-                      const targetDateStr = emp.targetDate
-                        ? emp.targetDate.toLocaleDateString('he-IL', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                        : 'טרם נקבע';
-
-                      return (
-                        <tr 
-                          key={emp.id} 
-                          id={`schedule-row-${emp.id}`}
-                          className={scheduleSuccessId === emp.id ? 'row-updated-highlight' : ''}
-                        >
-                          <td className="font-mono font-bold text-cyan">{emp.id}</td>
-                          <td className="font-bold">{emp.name}</td>
-                          <td>{emp.department}</td>
-                          <td>{emp.role}</td>
-                          <td>
-                            {emp.lastResult ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                <span style={{ fontWeight: 700 }}>{lastExamStr}</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                  <span className={`table-score-pill ${emp.lastResult.score >= 70 ? 'score-high' : 'score-low'}`} style={{ padding: '0.1rem 0.45rem', fontSize: '0.74rem' }}>
-                                    {emp.lastResult.score}%
-                                  </span>
-                                  <span style={{ fontSize: '0.74rem', color: emp.lastResult.score >= 70 ? '#059669' : '#e11d48', fontWeight: 700 }}>
-                                    {emp.lastResult.score >= 70 ? 'עבר' : 'נכשל'}
-                                  </span>
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-muted" style={{ fontStyle: 'italic', fontSize: '0.82rem' }}>
-                                טרם נבחן במערכת
+                    nonAdminEmployees.map(emp => (
+                      <tr
+                        key={emp.id}
+                        id={`schedule-row-${emp.id}`}
+                        style={!emp.isActiveUser ? { opacity: 0.6 } : undefined}
+                      >
+                        <td className="font-mono font-bold text-cyan">{emp.id}</td>
+                        <td className="font-bold">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>{emp.name}</span>
+                            {!emp.isActiveUser && (
+                              <span
+                                style={{
+                                  fontSize: '0.72rem',
+                                  padding: '0.1rem 0.45rem',
+                                  borderRadius: '999px',
+                                  background: '#f1f5f9',
+                                  color: '#64748b',
+                                  fontWeight: 600
+                                }}
+                              >
+                                משתמש כבוי
                               </span>
                             )}
-                          </td>
-                          <td>
-                            <div className="schedule-target-cell">
-                              <span className="schedule-target-date">{targetDateStr}</span>
-                              {emp.isCustomTarget ? (
-                                <span className="schedule-target-tag custom-tag">מועד מותאם אישית</span>
-                              ) : emp.targetDate ? (
-                                <span className="schedule-target-tag auto-tag">4 חודשים (אוטומטי)</span>
-                              ) : null}
-                            </div>
-                          </td>
-                          <td>
-                            <span className={`schedule-status-badge ${emp.statusClass}`}>
-                              {emp.statusKey === 'valid' && <CheckCircle2 size={13} />}
-                              {emp.statusKey === 'due_soon' && <Clock size={13} />}
-                              {emp.statusKey === 'overdue' && <AlertTriangle size={13} />}
-                              {emp.statusKey === 'never' && <HelpCircle size={13} />}
-                              <span>{emp.statusLabel}</span>
+                          </div>
+                        </td>
+                        <td>{emp.department}</td>
+                        <td>{emp.role}</td>
+                        <td>
+                          {emp.hasCompleted ? (
+                            <span className="schedule-status-badge status-valid">
+                              <CheckCircle2 size={14} />
+                              <span>ביצע מבחן טורניר</span>
                             </span>
-                          </td>
-                          <td>
-                            {emp.scheduleNotes ? (
-                              <span style={{ fontSize: '0.82rem', color: '#334155' }}>{emp.scheduleNotes}</span>
-                            ) : (
-                              <span className="text-muted" style={{ fontSize: '0.8rem' }}>—</span>
-                            )}
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn-schedule-action"
-                              onClick={() => handleOpenScheduleModal(emp)}
-                              title="קביעה או שינוי מועד מבחן תקופתי לעובד זה"
-                            >
-                              <Calendar size={13} />
-                              <span>קבע / עדכן מועד</span>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
+                          ) : (
+                            <span className="schedule-status-badge status-never">
+                              <Clock size={14} />
+                              <span>לא ביצע</span>
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

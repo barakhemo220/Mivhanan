@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const EMPLOYEES_FILE = path.join(__dirname, 'data/employees.json');
 const QUESTIONS_FILE = path.join(__dirname, 'data/questions.json');
 const RESULTS_FILE = path.join(__dirname, 'data/exam_results.json');
+const TOURNAMENT_FILE = path.join(__dirname, 'data/tournament.json');
 const SAVED_EXAMS_PDF_DIR = path.join(__dirname, 'data/saved_exams_pdf');
 
 // Schemas with strict: false to maintain 100% schema flexibility
@@ -67,10 +68,20 @@ const SavedPdfSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }, { strict: false });
 
+const TournamentSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  title: String,
+  startDate: String,
+  endDate: String,
+  resultsRevealed: { type: Boolean, default: false },
+  updatedAt: String
+}, { strict: false, timestamps: true });
+
 export const EmployeeModel = mongoose.model('Employee', EmployeeSchema);
 export const QuestionModel = mongoose.model('Question', QuestionSchema);
 export const ExamResultModel = mongoose.model('ExamResult', ExamResultSchema);
 export const SavedPdfModel = mongoose.model('SavedPdf', SavedPdfSchema);
+export const TournamentModel = mongoose.model('Tournament', TournamentSchema);
 
 let isConnected = false;
 
@@ -164,6 +175,16 @@ async function seedAtlasFromLocalIfEmpty() {
         }
       }
     }
+    // 5. Tournament Config
+    const tournCount = await TournamentModel.countDocuments();
+    if (tournCount === 0 && fs.existsSync(TOURNAMENT_FILE)) {
+      const raw = fs.readFileSync(TOURNAMENT_FILE, 'utf-8');
+      const data = JSON.parse(raw);
+      if (data && data.id) {
+        await TournamentModel.create(data);
+        console.log('🌱 [Seed] Migrated tournament config to MongoDB Atlas.');
+      }
+    }
   } catch (err) {
     console.error('Error during initial seed to Atlas:', err.message);
   }
@@ -199,6 +220,12 @@ export async function syncAtlasToLocalDisk() {
     const results = await ExamResultModel.find({}, '-_id -__v').lean();
     if (results && results.length > 0) {
       writeAtomicSync(RESULTS_FILE, JSON.stringify(results, null, 2));
+    }
+
+    // Sync Tournament Config
+    const tournamentDoc = await TournamentModel.findOne({ id: 'tournament_current' }, '-_id -__v').lean();
+    if (tournamentDoc) {
+      writeAtomicSync(TOURNAMENT_FILE, JSON.stringify(tournamentDoc, null, 2));
     }
 
     // Sync PDFs
