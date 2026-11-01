@@ -1132,14 +1132,20 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
   const shuffled = shuffleArray(candidateQuestions);
   const selected = shuffled.slice(0, Math.min(count, shuffled.length));
 
-  // Sanitize: strip correctAnswer & explanation so candidates cannot cheat
+  // Sanitize: strip correctAnswer & explanation for official tournament exams; include them in Practice Mode for instant feedback
   const clientQuestions = selected.map(q => ({
     id: q.id,
     topic: q.topic,
     level: q.level || 2,
     question: q.question,
     image: q.image,
-    options: q.options
+    options: q.options,
+    ...(isPractice
+      ? {
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation || ''
+        }
+      : {})
   }));
 
   const examId = `exam-${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;

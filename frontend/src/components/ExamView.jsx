@@ -5,6 +5,7 @@ import {
   Flag, 
   Maximize2, 
   CheckCircle2, 
+  XCircle,
   AlertCircle, 
   Send, 
   HelpCircle,
@@ -323,19 +324,26 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   }
 
   // -------------------------------------------------------------
-  // Restriction 1: No Scheduled Exam Available
+  // Restriction 1: No Scheduled Tournament Available
   // -------------------------------------------------------------
   if (restriction && restriction.reason === 'NO_SCHEDULED_EXAM') {
+    const tournSummary = restriction.tournamentSummary;
     return (
       <div className="schedule-restriction-container fade-in" id="restriction-no-schedule">
+        {tournSummary?.isResultsVisible && (
+          <div style={{ width: '100%', maxWidth: 960, marginBottom: '1.5rem' }}>
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
+
         <div className="schedule-card-wrapper glass-card">
           <div className="schedule-badge-icon badge-locked">
-            <CalendarX size={48} className="icon-locked" />
+            <Trophy size={48} className="icon-locked" />
           </div>
 
-          <h1 className="schedule-title">אין עבורך מבחן מתוזמן במערכת</h1>
+          <h1 className="schedule-title">טרם נקבע מועד לטורניר המכשיריות</h1>
           <p className="schedule-subtitle">
-            האפשרות לגשת למבחן חסומה כעת. על פי נהלי המפעל, ביצוע מבחן תקופתי במכשור ובקרה מתאפשר אך ורק לאחר תיאום ותזמון מועד על ידי מנהל המערכת.
+            שלום <strong>{user?.name}</strong>, כרגע אין טורניר פעיל מתוזמן במערכת. באפשרותך להיכנס לאזור התרגול החופשי (הכולל שאלות מכל הרמות והצגת תשובה והסבר מיידי לכל שאלה).
           </p>
 
           <div className="employee-info-box">
@@ -344,26 +352,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               <span className="info-val">{user?.name}</span>
             </div>
             <div className="info-chip">
-              <span className="info-label">מספר אישי:</span>
-              <span className="info-val">{user?.id}</span>
-            </div>
-            <div className="info-chip">
-              <span className="info-label">מחלקה:</span>
+              <span className="info-label">מחלקה / מכשיריה:</span>
               <span className="info-val">{user?.department}</span>
             </div>
             <div className="info-chip">
-              <span className="info-label">סטטוס מועד:</span>
-              <span className="info-val status-blocked-tag">לא נקבע מועד בחינה פעיל</span>
-            </div>
-          </div>
-
-          <div className="schedule-notice-box notice-warning">
-            <Info size={20} className="notice-icon" />
-            <div className="notice-content">
-              <strong>כיצד לפתוח את המבחן?</strong>
-              <span>
-                יש לפנות למנהל המכשירייה או למנהל ההדרכה על מנת שיתזמן עבורך מועד בחינה במערכת הניהול. לאחר התזמון, לחץ על "רענן סטטוס" כדי להיכנס למבחן.
-              </span>
+              <span className="info-label">סטטוס טורניר:</span>
+              <span className="info-val status-blocked-tag">טרם נקבע מועד טורניר</span>
             </div>
           </div>
 
@@ -374,34 +368,11 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               className="btn btn-primary btn-practice" 
               onClick={startPracticeExam}
               disabled={loadingPractice}
-              title="כניסה למבחן במצב תרגול - לקבלת ציון ותחקיר ללא רישום ביומן"
+              title="כניסה לתרגול חופשי מכל הרמות עם הצגת תשובה והסבר מיידי לכל שאלה"
             >
               <GraduationCap size={18} />
-              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול'}</span>
+              <span>{loadingPractice ? 'טוען תרגול...' : 'התחל תרגול'}</span>
             </button>
-
-            <button 
-              type="button" 
-              id="btn-refresh-schedule-status"
-              className="btn btn-secondary" 
-              onClick={() => fetchExamQuestions(true)}
-              disabled={isRefreshingStatus}
-            >
-              <RefreshCw size={16} className={isRefreshingStatus ? 'spin' : ''} />
-              <span>{isRefreshingStatus ? 'בודק נתונים...' : 'רענן סטטוס מועד'}</span>
-            </button>
-
-            {onLogout && (
-              <button 
-                type="button" 
-                id="btn-logout-blocked"
-                className="btn btn-secondary" 
-                onClick={onLogout}
-              >
-                <LogOut size={16} />
-                <span>יציאה מהמערכת</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -409,37 +380,44 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   }
 
   // -------------------------------------------------------------
-  // Restriction 2: Exam Scheduled Too Far In The Future (> 30 days)
+  // Restriction 2: Tournament Scheduled In The Future
   // -------------------------------------------------------------
   if (restriction && restriction.reason === 'TOO_EARLY') {
+    const tournSummary = restriction.tournamentSummary;
     return (
       <div className="schedule-restriction-container fade-in" id="restriction-too-early">
+        {tournSummary?.isResultsVisible && (
+          <div style={{ width: '100%', maxWidth: 960, marginBottom: '1.5rem' }}>
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
+
         <div className="schedule-card-wrapper glass-card">
           <div className="schedule-badge-icon badge-early">
             <CalendarClock size={48} className="icon-early" />
           </div>
 
-          <h1 className="schedule-title">מועד המבחן טרם הגיע</h1>
+          <h1 className="schedule-title">מועד טורניר המכשיריות טרם הגיע</h1>
           <p className="schedule-subtitle">
-            עובד יקר, נקבע עבורך מועד למבחן תקופתי, אך חלון הבחינה ייפתח עד חודש (30 יום) לפני המועד המתוזמן.
+            שלום <strong>{user?.name}</strong>, נקבע מועד לטורניר המכשיריות הקרוב! עד לפתיחת הטורניר תוכל להתאמן ולהתכונן במצב תרגול.
           </p>
 
           {/* Timeline & Countdown Grid */}
           <div className="countdown-cards-grid">
-            <div className="countdown-card">
-              <div className="card-top-label">תאריך יעד המבחן</div>
-              <div className="card-main-val highlight-target">
-                {restriction.targetDateFormatted || restriction.nextExamDate}
-              </div>
-              <div className="card-sub-label">מועד סיום התקופה</div>
-            </div>
-
             <div className="countdown-card active-window-card">
-              <div className="card-top-label">פתיחת חלון הבחינה</div>
+              <div className="card-top-label">פתיחת הטורניר</div>
               <div className="card-main-val highlight-open">
                 {restriction.windowOpenDateFormatted || restriction.windowOpenDate}
               </div>
-              <div className="card-sub-label">חודש (30 יום) לפני המועד</div>
+              <div className="card-sub-label">תאריך התחלת התחרות</div>
+            </div>
+
+            <div className="countdown-card">
+              <div className="card-top-label">סיום הטורניר</div>
+              <div className="card-main-val highlight-target">
+                {restriction.targetDateFormatted || restriction.nextExamDate}
+              </div>
+              <div className="card-sub-label">תאריך סיום התחרות</div>
             </div>
 
             <div className="countdown-card">
@@ -448,18 +426,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
                 {restriction.daysUntilOpen}
                 <span className="unit-text"> ימים</span>
               </div>
-              <div className="card-sub-label">עד לפתיחת חלון הבחינה</div>
-            </div>
-          </div>
-
-          <div className="schedule-notice-box notice-info">
-            <Info size={20} className="notice-icon" />
-            <div className="notice-content">
-              <strong>הנחיית ביצוע מבחן</strong>
-              <span>
-                על פי נהלי המערכת, עובד יכול לבצע את המבחן החל מ-30 יום לפני מועד היעד שנקבע.
-                החל מתאריך <strong>{restriction.windowOpenDateFormatted}</strong> תיפתח עבורך האפשרות להיבחן באופן אוטומטי.
-              </span>
+              <div className="card-sub-label">עד לפתיחת הטורניר</div>
             </div>
           </div>
 
@@ -470,34 +437,11 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               className="btn btn-primary btn-practice" 
               onClick={startPracticeExam}
               disabled={loadingPractice}
-              title="כניסה למבחן במצב תרגול - לקבלת ציון ותחקיר ללא רישום ביומן"
+              title="כניסה לתרגול חופשי מכל הרמות עם הצגת תשובה והסבר מיידי לכל שאלה"
             >
               <GraduationCap size={18} />
-              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול'}</span>
+              <span>{loadingPractice ? 'טוען תרגול...' : 'התחל תרגול'}</span>
             </button>
-
-            <button 
-              type="button" 
-              id="btn-refresh-schedule-early"
-              className="btn btn-secondary" 
-              onClick={() => fetchExamQuestions(true)}
-              disabled={isRefreshingStatus}
-            >
-              <RefreshCw size={16} className={isRefreshingStatus ? 'spin' : ''} />
-              <span>{isRefreshingStatus ? 'בודק נתונים...' : 'רענן סטטוס מועד'}</span>
-            </button>
-
-            {onLogout && (
-              <button 
-                type="button" 
-                id="btn-logout-early"
-                className="btn btn-secondary" 
-                onClick={onLogout}
-              >
-                <LogOut size={16} />
-                <span>יציאה מהמערכת</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -557,32 +501,11 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               className="btn btn-primary btn-practice"
               onClick={startPracticeExam}
               disabled={loadingPractice}
-              title="כניסה למבחן במצב תרגול חופשי מכל הרמות"
+              title="כניסה לתרגול חופשי מכל הרמות עם הצגת תשובה והסבר מיידי לכל שאלה"
             >
               <GraduationCap size={18} />
-              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול חופשי (כל הרמות)'}</span>
+              <span>{loadingPractice ? 'טוען תרגול...' : 'התחל תרגול'}</span>
             </button>
-
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => fetchExamQuestions(true)}
-              disabled={isRefreshingStatus}
-            >
-              <RefreshCw size={16} className={isRefreshingStatus ? 'spin' : ''} />
-              <span>{isRefreshingStatus ? 'בודק נתונים...' : 'רענן סטטוס טורניר'}</span>
-            </button>
-
-            {onLogout && (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onLogout}
-              >
-                <LogOut size={16} />
-                <span>יציאה מהמערכת</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -590,7 +513,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   }
 
   // -------------------------------------------------------------
-  // Pre-Exam Lobby: Scheduled Exam Ready, User Chooses Start or Practice
+  // Pre-Exam Lobby: Scheduled Tournament Ready, User Chooses Start Tournament or Start Practice
   // -------------------------------------------------------------
   if (!examStarted && !restriction && questions.length > 0) {
     return (
@@ -600,9 +523,9 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             <Trophy size={48} className="icon-lobby" />
           </div>
 
-          <h1 className="schedule-title">מבחן טורניר המכשיריות במכשור ובקרה 🏆</h1>
+          <h1 className="schedule-title">טורניר המכשיריות במכשור ובקרה 🏆</h1>
           <p className="schedule-subtitle">
-            שלום <strong>{user?.name}</strong>, טורניר המכשיריות פתוח כעת! הצלחתך במבחן מחזקת את הממוצע של <strong>{user?.department}</strong> בתחרות:
+            שלום <strong>{user?.name}</strong>, טורניר המכשיריות פתוח כעת! הצלחתך במבחן הטורניר מחזקת את הממוצע של <strong>{user?.department}</strong> בתחרות:
           </p>
 
           <div className="employee-info-box">
@@ -611,24 +534,20 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               <span className="info-val">{user?.name}</span>
             </div>
             <div className="info-chip">
-              <span className="info-label">מספר אישי:</span>
-              <span className="info-val">{user?.id}</span>
-            </div>
-            <div className="info-chip">
-              <span className="info-label">מחלקה:</span>
+              <span className="info-label">מחלקה / מכשיריה:</span>
               <span className="info-val">{user?.department}</span>
             </div>
             <div className="info-chip">
-              <span className="info-label">רמת מבחן:</span>
+              <span className="info-label">רמת מבחן טורניר:</span>
               <span className="info-val">
                 {user?.level === 3 ? 'רמה 3 (מתקדם)' : user?.level === 1 ? 'רמה 1 (מתחיל)' : 'רמה 2 (בינוני)'}
               </span>
             </div>
             {scheduleInfo?.targetDateFormatted && (
               <div className="info-chip">
-                <span className="info-label">מועד מתוזמן:</span>
-                <span className={`info-val ${scheduleInfo.isOverdue ? 'status-blocked-tag' : 'status-open-tag'}`}>
-                  {scheduleInfo.isOverdue ? `באיחור (${scheduleInfo.targetDateFormatted})` : scheduleInfo.targetDateFormatted}
+                <span className="info-label">מועד סיום הטורניר:</span>
+                <span className="info-val status-open-tag">
+                  {scheduleInfo.targetDateFormatted}
                 </span>
               </div>
             )}
@@ -637,10 +556,10 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
           <div className="schedule-notice-box notice-info">
             <Info size={20} className="notice-icon" />
             <div className="notice-content">
-              <strong>מבנה המבחן והנחיות</strong>
+              <strong>בחר מסלול כניסה</strong>
               <span>
-                המבחן כולל <strong>{questions.length} שאלות רב-ברירה</strong> ותרשימים טכניים.
-                ציון המעבר הינו <strong>70%</strong>. תוכל לגשת ישירות למבחן הרשמי, או לבצע תרגול מקדים ללא רישום ציון.
+                לחיצה על <strong>"התחל טורניר"</strong> תכניס אותך למבחן הרשמי של התחרות ({questions.length} שאלות).
+                לחיצה על <strong>"התחל תרגול"</strong> תפתח אימון חופשי מכל הרמות עם הצגת תשובה נכונה והסבר מיידי לכל שאלה.
               </span>
             </div>
           </div>
@@ -652,8 +571,8 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               className="btn btn-primary btn-start-exam" 
               onClick={startOfficialExam}
             >
-              <CheckCircle2 size={18} />
-              <span>התחל מבחן</span>
+              <Trophy size={18} />
+              <span>התחל טורניר</span>
             </button>
 
             <button 
@@ -662,23 +581,11 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
               className="btn btn-secondary btn-practice" 
               onClick={startPracticeExam}
               disabled={loadingPractice}
-              title="ביצוע תרגול מקדים - הציון לא נרשם במערכת"
+              title="ביצוע תרגול מכל הרמות עם הצגת תשובה והסבר מיידי לכל שאלה"
             >
               <GraduationCap size={18} />
-              <span>{loadingPractice ? 'טוען תרגול...' : 'תרגול מקדים (ללא ציון)'}</span>
+              <span>{loadingPractice ? 'טוען תרגול...' : 'התחל תרגול'}</span>
             </button>
-
-            {onLogout && (
-              <button 
-                type="button" 
-                id="btn-logout-lobby"
-                className="btn btn-secondary" 
-                onClick={onLogout}
-              >
-                <LogOut size={16} />
-                <span>יציאה מהמערכת</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -830,12 +737,22 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             {/* 4 Multiple Choice Options */}
             <div className="options-container" id="options-container">
               {currentQ.options.map((optText, optIdx) => {
-                const isSelected = answers[currentQ.id] === optIdx;
+                const selectedOpt = answers[currentQ.id];
+                const hasAnsweredCurrent = selectedOpt !== undefined && selectedOpt !== null;
+                const isSelected = selectedOpt === optIdx;
+                const showPracticeFeedback = Boolean(isPractice && hasAnsweredCurrent && currentQ.correctAnswer !== undefined);
+                const isCorrectOption = showPracticeFeedback && optIdx === currentQ.correctAnswer;
+                const isWrongSelected = showPracticeFeedback && isSelected && optIdx !== currentQ.correctAnswer;
+
+                let optionStateClass = isSelected ? 'selected' : '';
+                if (isCorrectOption) optionStateClass += ' practice-opt-correct';
+                if (isWrongSelected) optionStateClass += ' practice-opt-wrong';
+
                 return (
                   <div
                     key={optIdx}
                     id={`option-${optIdx}`}
-                    className={`option-card ${isSelected ? 'selected' : ''}`}
+                    className={`option-card ${optionStateClass}`}
                     onClick={() => handleSelectOption(optIdx)}
                   >
                     <div className="option-radio-indicator">
@@ -844,11 +761,62 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
                         {isSelected && <div className="option-circle-dot" />}
                       </div>
                     </div>
-                    <div className="option-text">{optText}</div>
+                    <div className="option-text" style={{ flex: 1 }}>{optText}</div>
+
+                    {isCorrectOption && (
+                      <span className="practice-opt-badge badge-opt-correct">
+                        <CheckCircle2 size={15} />
+                        <span>{isSelected ? 'בחירתך נכונה ✓' : 'התשובה הנכונה ✓'}</span>
+                      </span>
+                    )}
+                    {isWrongSelected && (
+                      <span className="practice-opt-badge badge-opt-wrong">
+                        <XCircle size={15} />
+                        <span>תשובה שגויה ✗</span>
+                      </span>
+                    )}
                   </div>
                 );
               })}
             </div>
+
+            {/* Instant Answer & Explanation Box in Practice Mode */}
+            {isPractice && answers[currentQ.id] !== undefined && answers[currentQ.id] !== null && currentQ.correctAnswer !== undefined && (() => {
+              const userChoice = answers[currentQ.id];
+              const isUserCorrect = userChoice === currentQ.correctAnswer;
+              const correctLetter = OPTION_LETTERS[currentQ.correctAnswer] || '';
+              const correctOptionText = currentQ.options?.[currentQ.correctAnswer] || '';
+
+              return (
+                <div
+                  className={`practice-instant-feedback fade-in ${isUserCorrect ? 'feedback-correct' : 'feedback-wrong'}`}
+                  id="practice-instant-feedback"
+                >
+                  <div className="practice-feedback-header">
+                    {isUserCorrect ? (
+                      <>
+                        <CheckCircle2 size={20} />
+                        <span>תשובה נכונה! כל הכבוד ✓</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle size={20} />
+                        <span>
+                          תשובה שגויה — התשובה הנכונה היא סעיף {correctLetter}&apos;: {correctOptionText}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {currentQ.explanation && (
+                    <div className="practice-feedback-explanation">
+                      <strong>הסבר מקצועי: </strong>
+                      <span>{currentQ.explanation}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Bottom Navigation Toolbar */}
@@ -885,7 +853,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
                 onClick={() => setShowConfirmModal(true)}
               >
                 <Send size={18} />
-                <span>סיום והגשת מבחן</span>
+                <span>{isPractice ? 'סיום תרגול וצפייה בסיכום' : 'סיום והגשת מבחן'}</span>
               </button>
             </div>
           </div>
@@ -935,7 +903,15 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
                 if (paletteFilter === 'flagged' && !isFlagged) return null;
 
                 let statusClass = 'status-unanswered';
-                if (isAnswered) statusClass = 'status-answered';
+                if (isAnswered) {
+                  if (isPractice && q.correctAnswer !== undefined) {
+                    statusClass = answers[q.id] === q.correctAnswer
+                      ? 'status-answered practice-matrix-correct'
+                      : 'status-answered practice-matrix-wrong';
+                  } else {
+                    statusClass = 'status-answered';
+                  }
+                }
 
                 return (
                   <button

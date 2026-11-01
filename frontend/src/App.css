@@ -5375,3 +5375,98 @@ tr.row-updated-highlight {
   color: #94a3b8;
   text-align: center;
 }
+
+/* =========================================================================
+   PRACTICE MODE: INSTANT ANSWER REVEAL & EXPLANATION
+   ========================================================================= */
+
+.option-card.practice-opt-correct {
+  border-color: #10b981 !important;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.16);
+}
+
+.option-card.practice-opt-wrong {
+  border-color: #ef4444 !important;
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.14);
+}
+
+.practice-opt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.badge-opt-correct {
+  background: #059669;
+  color: #ffffff;
+}
+
+.badge-opt-wrong {
+  background: #e11d48;
+  color: #ffffff;
+}
+
+.practice-instant-feedback {
+  margin-top: 1.15rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  border: 1.5px solid #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.practice-instant-feedback.feedback-correct {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #34d399;
+}
+
+.practice-instant-feedback.feedback-wrong {
+  background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);
+  border-color: #fda4af;
+}
+
+.practice-feedback-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.98rem;
+  font-weight: 800;
+  margin-bottom: 0.45rem;
+}
+
+.feedback-correct .practice-feedback-header {
+  color: #065f46;
+}
+
+.feedback-wrong .practice-feedback-header {
+  color: #9f1239;
+}
+
+.practice-feedback-explanation {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  border-right: 4px solid #0284c7;
+}
+
+.matrix-btn.practice-matrix-correct {
+  background: #d1fae5 !important;
+  border-color: #10b981 !important;
+  color: #065f46 !important;
+}
+
+.matrix-btn.practice-matrix-wrong {
+  background: #ffe4e6 !important;
+  border-color: #f43f5e !important;
+  color: #9f1239 !important;
+}
+
