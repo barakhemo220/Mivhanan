@@ -142,7 +142,7 @@ export default function App() {
       {/* Footer */}
       <footer className="app-footer no-print">
         <div className="footer-content">
-          <span>מִבְחָנָן • פלטפורמת מבחנים תקופתיים במכשור ובקרה</span>
+          <span>מִבְחָנָן • מערכת אינטראקטיבית ללמידת מכשור ובקרה</span>
           <span className="footer-separator">•</span>
           <span>גרסה 2.4 תעשייתית</span>
           <span className="footer-separator">•</span>

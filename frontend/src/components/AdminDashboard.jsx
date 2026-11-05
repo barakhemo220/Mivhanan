@@ -295,6 +295,7 @@ export default function AdminDashboard({ user, onLogout }) {
       const data = await res.json();
       if (data.success && data.tournament) {
         setTournamentData(data.tournament);
+        setActiveTab('tournament_results');
         showToast('הטורניר הסתיים! סיכום התוצאות הקיימות מוצג כעת על הפודיום 🏆', 'success');
       } else {
         showToast(data.message || 'שגיאה בסיום הטורניר', 'error');
@@ -1126,8 +1127,20 @@ export default function AdminDashboard({ user, onLogout }) {
           className={`admin-tab-btn ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
         >
-          <Trophy size={16} />
+          <CalendarClock size={16} />
           <span>מעקב ותזמון טורניר</span>
+        </button>
+
+        <button 
+          id="tab-btn-tournament-results"
+          className={`admin-tab-btn ${activeTab === 'tournament_results' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('tournament_results');
+            refreshTournamentStatus();
+          }}
+        >
+          <Trophy size={16} />
+          <span>תוצאות הטורניר</span>
         </button>
 
         <button 
@@ -1452,6 +1465,16 @@ export default function AdminDashboard({ user, onLogout }) {
           </div>
         );
       })()}
+
+      {/* Tab 2: Tournament Results & Live Podium */}
+      {activeTab === 'tournament_results' && (
+        <div className="admin-tab-content glass-card fade-in" id="admin-tournament-results-content">
+          <TournamentPodium
+            tournament={tournamentData}
+            leaderboard={tournamentData?.leaderboard}
+          />
+        </div>
+      )}
 
       {/* Tab 3: Question Bank Inspector */}
       {activeTab === 'questions' && (

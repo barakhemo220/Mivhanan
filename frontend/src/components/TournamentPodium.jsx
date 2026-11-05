@@ -2,8 +2,7 @@ import React from 'react';
 import { Award, Sparkles, Users, Trophy, Zap } from 'lucide-react';
 
 export default function TournamentPodium({ tournament, leaderboard }) {
-  const lb = leaderboard || tournament?.leaderboard || tournament;
-  if (!lb) return null;
+  const lb = leaderboard || tournament?.leaderboard || tournament || {};
 
   const highestScore = lb.highestScore || null;
   const podium = Array.isArray(lb.podium) ? lb.podium : [];
@@ -74,7 +73,7 @@ export default function TournamentPodium({ tournament, leaderboard }) {
                 <Trophy size={38} />
               </div>
               <div className="record-score-giant" id="tournament-highest-score">
-                {highestScore.score}%
+                {highestScore.score}
               </div>
               <div className="record-dept-pill">
                 <Sparkles size={15} />
@@ -117,7 +116,7 @@ export default function TournamentPodium({ tournament, leaderboard }) {
                     {secondPlace ? secondPlace.department : '—'}
                   </div>
                   <div className="podium-avg-score">
-                    {secondPlace ? `${secondPlace.averageScore}%` : '—'}
+                    {secondPlace ? secondPlace.averageScore : '—'}
                   </div>
                   <div className="podium-avg-caption">ממוצע מכשירייה</div>
                   {secondPlace && (
@@ -138,7 +137,7 @@ export default function TournamentPodium({ tournament, leaderboard }) {
                     {firstPlace ? firstPlace.department : '—'}
                   </div>
                   <div className="podium-avg-score">
-                    {firstPlace ? `${firstPlace.averageScore}%` : '—'}
+                    {firstPlace ? firstPlace.averageScore : '—'}
                   </div>
                   <div className="podium-avg-caption">ממוצע מכשירייה</div>
                   {firstPlace && (
@@ -159,7 +158,7 @@ export default function TournamentPodium({ tournament, leaderboard }) {
                     {thirdPlace ? thirdPlace.department : '—'}
                   </div>
                   <div className="podium-avg-score">
-                    {thirdPlace ? `${thirdPlace.averageScore}%` : '—'}
+                    {thirdPlace ? thirdPlace.averageScore : '—'}
                   </div>
                   <div className="podium-avg-caption">ממוצע מכשירייה</div>
                   {thirdPlace && (

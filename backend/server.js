@@ -622,36 +622,38 @@ function computeTournamentSummary() {
   for (const emp of nonAdminEmployees) {
     const dept = String(emp.department || '').trim();
     if (!dept || dept === 'הנהלת מכשור ובקרה') continue;
-    const cleanId = String(emp.id).trim();
-    const isActiveEmp = emp.isActive !== false;
-    const submission = tournamentResultsMap.get(cleanId);
-
-    // Include active (switched-on) employees, or any employee who submitted in this tournament
-    if (!isActiveEmp && !submission) continue;
-
     if (!deptGroups.has(dept)) {
       deptGroups.set(dept, {
         department: dept,
         activeCount: 0,
+        totalDeptCount: 0,
         completedCount: 0,
         totalScoreSum: 0,
         totalTimeSeconds: 0
       });
     }
     const g = deptGroups.get(dept);
-    g.activeCount += 1;
-    if (submission) {
-      g.completedCount += 1;
-      g.totalScoreSum += (typeof submission.score === 'number' ? submission.score : 0);
-      g.totalTimeSeconds += (typeof submission.timeSpentSeconds === 'number' ? submission.timeSpentSeconds : 0);
+    g.totalDeptCount += 1;
+
+    const cleanId = String(emp.id).trim();
+    const isActiveEmp = emp.isActive !== false;
+    const submission = tournamentResultsMap.get(cleanId);
+
+    if (isActiveEmp || submission) {
+      g.activeCount += 1;
+      if (submission) {
+        g.completedCount += 1;
+        g.totalScoreSum += (typeof submission.score === 'number' ? submission.score : 0);
+        g.totalTimeSeconds += (typeof submission.timeSpentSeconds === 'number' ? submission.timeSpentSeconds : 0);
+      }
     }
   }
 
   const departmentStandings = Array.from(deptGroups.values())
-    .filter(g => g.activeCount > 0)
     .map(g => {
-      const averageScore = Math.round((g.totalScoreSum / g.activeCount) * 10) / 10;
-      const participationRate = Math.round((g.completedCount / g.activeCount) * 100);
+      const denominator = g.activeCount > 0 ? g.activeCount : g.totalDeptCount;
+      const averageScore = denominator > 0 ? Math.round((g.totalScoreSum / denominator) * 10) / 10 : 0;
+      const participationRate = denominator > 0 ? Math.round((g.completedCount / denominator) * 100) : 0;
       const avgTimeSeconds = g.completedCount > 0 ? Math.round(g.totalTimeSeconds / g.completedCount) : 999999;
       return {
         department: g.department,
@@ -665,6 +667,7 @@ function computeTournamentSummary() {
     .sort((a, b) => {
       if (b.averageScore !== a.averageScore) return b.averageScore - a.averageScore;
       if (b.completedCount !== a.completedCount) return b.completedCount - a.completedCount;
+      if (b.activeCount !== a.activeCount) return b.activeCount - a.activeCount;
       return a.avgTimeSeconds - b.avgTimeSeconds;
     })
     .map((item, idx) => ({
@@ -677,13 +680,11 @@ function computeTournamentSummary() {
     }));
 
   const podium = departmentStandings.slice(0, 3);
-  const leaderboardObj = isResultsVisible
-    ? {
-        highestScore,
-        podium,
-        departmentStandings
-      }
-    : null;
+  const leaderboardObj = {
+    highestScore,
+    podium,
+    departmentStandings
+  };
 
   const tournamentSummaryObj = {
     id: tournament.id,
@@ -703,8 +704,8 @@ function computeTournamentSummary() {
     employeeStatuses: employeeStatusList,
     employeeStatusList,
     leaderboard: leaderboardObj,
-    highestScore: isResultsVisible ? highestScore : null,
-    podium: isResultsVisible ? podium : []
+    highestScore,
+    podium
   };
 
   return {
@@ -1199,7 +1200,8 @@ app.get('/api/exam/questions', authenticateToken, (req, res) => {
       nextExamDate: eligibility.nextExamDate || null,
       targetDateFormatted: eligibility.targetDateFormatted || (emp?.nextExamDate ? formatDateHe(emp.nextExamDate) : null),
       isOverdue: Boolean(eligibility.isOverdue),
-      diffDays: eligibility.diffDays || 0
+      diffDays: eligibility.diffDays || 0,
+      tournamentSummary: eligibility.tournamentSummary || null
     } : (emp ? {
       nextExamDate: emp.nextExamDate || null,
       targetDateFormatted: emp.nextExamDate ? formatDateHe(emp.nextExamDate) : null

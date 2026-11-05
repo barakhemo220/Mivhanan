@@ -3765,10 +3765,39 @@ tr.row-updated-highlight {
    ========================================================================== */
 .schedule-restriction-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
+  gap: 1.75rem;
   min-height: 68vh;
   padding: 2rem 1rem;
+  width: 100%;
+}
+
+.employee-podium-below-wrapper {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .schedule-restriction-container {
+    padding: 1rem 0.65rem;
+    gap: 1.25rem;
+  }
+
+  .schedule-card-wrapper {
+    padding: 1.75rem 1.15rem;
+  }
+
+  .schedule-title {
+    font-size: 1.4rem;
+  }
+
+  .schedule-subtitle {
+    font-size: 0.94rem;
+    margin-bottom: 1.25rem;
+  }
 }
 
 .schedule-card-wrapper {
@@ -5254,8 +5283,37 @@ tr.row-updated-highlight {
 }
 
 @media (max-width: 640px) {
+  .tournament-arena-card {
+    padding: 1.35rem 0.95rem;
+    border-radius: 16px;
+  }
+
+  .tournament-arena-title {
+    font-size: 1.3rem;
+  }
+
+  .tournament-criterion-card {
+    padding: 1.05rem 0.85rem;
+  }
+
+  .record-score-giant {
+    font-size: 2.65rem;
+  }
+
   .olympic-podium-stage {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .podium-column.podium-gold {
+    order: -1;
+  }
+
+  .podium-gold .podium-pedestal,
+  .podium-silver .podium-pedestal,
+  .podium-bronze .podium-pedestal {
+    height: 44px;
+    font-size: 1.35rem;
   }
 }
 

@@ -64,10 +64,7 @@ export default function LoginView({ onLoginSuccess }) {
           <div className="login-icon-badge">
             <Cpu size={32} className="login-badge-icon" />
           </div>
-          <h1 className="login-title">מערכת מבחנים תקופתיים</h1>
-          <p className="login-subtitle">
-            פלטפורמת הערכה והסמכה מקצועית בתחום <span className="highlight-text">מכשור ובקרה</span>
-          </p>
+          <h1 className="login-title">מערכת אינטראקטיבית ללמידת מכשור ובקרה</h1>
         </div>
 
         {/* Error Alert */}

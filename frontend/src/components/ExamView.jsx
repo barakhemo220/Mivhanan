@@ -162,7 +162,8 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
         nextExamDate: data.nextExamDate,
         targetDateFormatted: data.targetDateFormatted,
         isOverdue: data.isOverdue,
-        diffDays: data.diffDays
+        diffDays: data.diffDays,
+        tournamentSummary: data.tournamentSummary || null
       });
       setQuestions(data.questions);
       setExamId(data.examId || null);
@@ -330,12 +331,6 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     const tournSummary = restriction.tournamentSummary;
     return (
       <div className="schedule-restriction-container fade-in" id="restriction-no-schedule">
-        {tournSummary?.isResultsVisible && (
-          <div style={{ width: '100%', maxWidth: 960, marginBottom: '1.5rem' }}>
-            <TournamentPodium tournament={tournSummary} />
-          </div>
-        )}
-
         <div className="schedule-card-wrapper glass-card">
           <div className="schedule-badge-icon badge-locked">
             <Trophy size={48} className="icon-locked" />
@@ -375,6 +370,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             </button>
           </div>
         </div>
+
+        {tournSummary?.isResultsVisible && (
+          <div className="employee-podium-below-wrapper">
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
       </div>
     );
   }
@@ -386,12 +387,6 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
     const tournSummary = restriction.tournamentSummary;
     return (
       <div className="schedule-restriction-container fade-in" id="restriction-too-early">
-        {tournSummary?.isResultsVisible && (
-          <div style={{ width: '100%', maxWidth: 960, marginBottom: '1.5rem' }}>
-            <TournamentPodium tournament={tournSummary} />
-          </div>
-        )}
-
         <div className="schedule-card-wrapper glass-card">
           <div className="schedule-badge-icon badge-early">
             <CalendarClock size={48} className="icon-early" />
@@ -444,6 +439,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             </button>
           </div>
         </div>
+
+        {tournSummary?.isResultsVisible && (
+          <div className="employee-podium-below-wrapper">
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
       </div>
     );
   }
@@ -457,12 +458,6 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
 
     return (
       <div className="schedule-restriction-container fade-in" id="restriction-tournament-status">
-        {tournSummary?.isResultsVisible && (
-          <div style={{ width: '100%', maxWidth: 960, marginBottom: '1.5rem' }}>
-            <TournamentPodium tournament={tournSummary} />
-          </div>
-        )}
-
         <div className="schedule-card-wrapper glass-card">
           <div className="schedule-badge-icon badge-lobby">
             <Trophy size={48} className="icon-lobby" />
@@ -474,7 +469,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
           <p className="schedule-subtitle">
             {isCompleted
               ? `כל הכבוד ${user?.name}! כבר ביצעת את מבחן הטורניר הנוכחי. התוצאות ישוקללו בממוצע של ${user?.department} וייחשפו בסיום התחרות.`
-              : `חלון הזמן של טורניר המכשיריות הסתיים (${restriction.targetDateFormatted || ''}). ניתן לצפות בתוצאות התחרות או להמשיך לתרגל חופשי.`}
+              : `חלון הזמן של טורניר המכשיריות הסתיים${restriction.targetDateFormatted ? ` (${restriction.targetDateFormatted})` : ''}. ניתן לצפות בתוצאות התחרות למטה או להמשיך לתרגל חופשי.`}
           </p>
 
           <div className="employee-info-box">
@@ -508,6 +503,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             </button>
           </div>
         </div>
+
+        {tournSummary?.isResultsVisible && (
+          <div className="employee-podium-below-wrapper">
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
       </div>
     );
   }
@@ -516,6 +517,7 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
   // Pre-Exam Lobby: Scheduled Tournament Ready, User Chooses Start Tournament or Start Practice
   // -------------------------------------------------------------
   if (!examStarted && !restriction && questions.length > 0) {
+    const tournSummary = scheduleInfo?.tournamentSummary;
     return (
       <div className="schedule-restriction-container fade-in" id="exam-welcome-lobby">
         <div className="schedule-card-wrapper glass-card">
@@ -588,6 +590,12 @@ export default function ExamView({ user, onExamComplete, examStartTime, onLogout
             </button>
           </div>
         </div>
+
+        {tournSummary?.isResultsVisible && (
+          <div className="employee-podium-below-wrapper">
+            <TournamentPodium tournament={tournSummary} />
+          </div>
+        )}
       </div>
     );
   }
