@@ -5148,6 +5148,7 @@ tr.row-updated-highlight {
   font-weight: 900;
   background: linear-gradient(90deg, #ffffff 0%, #fde68a 50%, #fbbf24 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
